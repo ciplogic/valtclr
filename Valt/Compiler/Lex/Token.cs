@@ -5,6 +5,12 @@ namespace Valt.Compiler
         public string text;
         public TokenType type;
         public override string ToString()
-            => $"'{text}' ({type})";
+        {
+            if (type == TokenType.Eoln)
+            {
+                return $"'' ({type})";
+            }
+            return $"'{text}' ({type})";
+        }
     }
 }

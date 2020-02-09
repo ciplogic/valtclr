@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Valt.Compiler
 {
@@ -65,7 +66,7 @@ namespace Valt.Compiler
 
         static bool isAlpha(char ch)
         {
-            return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch == '_');
+            return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch == '_')  || (ch == '@');
         }
 
         static bool isNum(char ch)
@@ -97,6 +98,7 @@ namespace Valt.Compiler
             "go",
             "goto",
             "if",
+            "union",
             "import",
             "in",
             "interface",
@@ -109,6 +111,7 @@ namespace Valt.Compiler
             "return",
             "struct",
             "type",
+            "__global"
         };
 
         static int matchReserved(string text, int pos)
@@ -131,9 +134,24 @@ namespace Valt.Compiler
 
         static int matchComment(string text, int pos)
         {
-            int len = matchAllStart(text, pos, "/*", "*/");
-            if (len != 0) return len;
-            return matchAllStart(text, pos, "//", "\n");
+            var len = matchAllStart(text, pos, "//", "\n");
+            if (len != 0) return len-1;
+            len = matchAllStart(text, pos, "/*", "*/");
+            if (len == 0)
+                return 0;
+            var openComment = 1;
+            for (var i = pos + 2; i < text.Length-1; i++)
+            {
+                if (text[i] == '*' && text[i + 1] == '/')
+                    openComment--;
+                if (text[i] == '/' && text[i + 1] == '*')
+                    openComment++;
+                if (openComment == 0)
+                {
+                    return i+2 - pos;
+                }
+            }
+            return 0;
         }
 
         static int matchQuote(string text, int pos)
@@ -216,12 +234,12 @@ namespace Valt.Compiler
             "<", ">",
             "|", "&",
             "[", "]", "{", "}",
-            ",",
+            ",", "^"
         };
 
         static bool isEoln(char ch)
         {
-            return ch == '\n';
+            return ch == '\n' || ch == '\r';
         }
 
         static int matchEoln(string text, int pos)
@@ -282,7 +300,7 @@ namespace Valt.Compiler
 
         public static (List<Token> items, string err) Tokenize(string text)
         {
-            List<Token> resultTokens = new List<Token>();
+            List<Token> resultTokens = new List<Token>(text.Length>>2);
 
             var tokenMatchers = matchers;
             int pos = 0;
@@ -310,7 +328,15 @@ namespace Valt.Compiler
 
                 if (!found)
                 {
-                    Console.WriteLine("Cannot match text:'" + reducedMessage(text, pos));
+                    var msg = reducedMessage(text, pos);
+                    var countTokensToSkip = resultTokens.Count - 5;
+                    var lastTokens = resultTokens.Skip(countTokensToSkip).ToArray();
+                    Console.WriteLine("Last tokens");
+                    foreach (var lastToken in lastTokens)
+                    {
+                        Console.WriteLine("Token: "+lastToken);
+                    }
+                    Console.WriteLine("Cannot match text:'" + msg);
 
                     throw new Exception("");
                 }

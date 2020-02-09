@@ -15,15 +15,25 @@ namespace Valt
         }
         static void Main(string[] args)
         {
-            var content = File.ReadAllText("v-master/vlib/builtin/string_test.v");
+            var content = File.ReadAllText("v-master/vlib/v/ast/ast.v");
             var tokens = Lexer.Tokenize(content);
+            var declarations = FirstPassCompiler.getTopLevelDeclarations(tokens.items);
             TimeIt("Built in", () =>
             {
-                var dirFiles = Directory.GetFiles("v-master/vlib/builtin/", "*.v");
+                var dirFiles = Directory.GetFiles("v-master/", "*.v", SearchOption.AllDirectories);
                 foreach (var dirFile in dirFiles)
                 {
-                    var content = File.ReadAllText(dirFile);
-                    var tokens = Lexer.Tokenize(content);
+                    try
+                    {
+                        Console.WriteLine("Source: " + dirFile);
+                        var content = File.ReadAllText(dirFile);
+                        var tokens = Lexer.Tokenize(content);
+                        FirstPassCompiler.getTopLevelDeclarations(tokens.items);
+                    }
+                    catch(Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
                 }
 
             });
