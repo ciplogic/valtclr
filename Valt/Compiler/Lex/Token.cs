@@ -1,6 +1,6 @@
 namespace Valt.Compiler
 {
-    public class Token
+    public struct Token
     {
         public string text;
         public TokenType type;

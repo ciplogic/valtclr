@@ -295,12 +295,15 @@ namespace Valt.Compiler
                     if (matchLen == 0)
                         continue;
                     found = true;
-                    pos += matchLen;
                     if (isSpaceToken(matcher.Item1))
+                    {
+                        pos += matchLen;
                         break;
+                    }
                     string foundText = text.Substring(pos, matchLen);
+                    pos += matchLen;
                     var token = new Token() {text = foundText, type = matcher.Item1};
-                    Console.WriteLine("Found:"+token);
+                    //Console.WriteLine("Found:"+token);
                     resultTokens.Add(token);
                     break;
                 }

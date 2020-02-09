@@ -15,8 +15,6 @@ namespace Valt
         }
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
-            
             var content = File.ReadAllText("v-master/vlib/builtin/string_test.v");
             var tokens = Lexer.Tokenize(content);
             TimeIt("Built in", () =>
