@@ -35,11 +35,16 @@ namespace Valt.Compiler
         private static StructDeclaration StructDeclarationEvaluation(PreModuleDeclaration structDecl)
         {
             var tokenRows = structDecl.tokens.SplitTokensByTokenType(TokenType.Eoln);
-            var strDef = new StructDeclaration();
-            strDef.Name = tokenRows[0][1].text;
+            var strDef = new StructDeclaration
+            {
+                Name = tokenRows[0][1].text
+            };
             for (var i = 1; i < tokenRows.Count - 1; i++)
             {
                 var currRow = tokenRows[i];
+                if (currRow.Length == 0)
+                    continue;
+                
                 StructField field = new StructField
                 {
                     Name = currRow[0].text, 

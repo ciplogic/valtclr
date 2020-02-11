@@ -27,7 +27,10 @@ namespace Valt
                         Console.WriteLine("Source: " + dirFile);
                         var content = File.ReadAllText(dirFile);
                         var tokens = Lexer.Tokenize(content);
-                        FirstPassCompiler.getTopLevelDeclarations(tokens.items);
+                        var declarations = FirstPassCompiler.getTopLevelDeclarations(tokens.items);
+                        
+                        var c = new ValtCompiler();
+                        ModuleDeclaration moduleDefs = c.SetupDefinitions(declarations);
                     }
                     catch(Exception ex)
                     {
