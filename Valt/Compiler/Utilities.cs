@@ -24,5 +24,23 @@ namespace Valt.Compiler
             }
             return (matching, notMatching);
         }
+
+        public static List<Token[]> SplitTokensByTokenType(this IEnumerable<Token> tokens, TokenType tokenType)
+        {
+            var result = new List<Token[]>();
+            var currentRow = new List<Token>();
+            foreach (var token in tokens)
+            {
+                if (token.type!=tokenType)
+                    currentRow.Add(token);
+                else
+                {
+                    result.Add(currentRow.ToArray());
+                    currentRow.Clear();
+                }
+            }
+            result.Add(currentRow.ToArray());
+            return result;
+        }
     }
 }

@@ -27,10 +27,27 @@ namespace Valt.Compiler
         {
             foreach (var structDecl in matching)
             {
-                var strDef = new StructDeclaration();
-                strDef.Name = structDecl.tokens[1].text;
+                var strDef = StructDeclarationEvaluation(structDecl);
                 result.Items.Add(strDef);
             }
+        }
+
+        private static StructDeclaration StructDeclarationEvaluation(PreModuleDeclaration structDecl)
+        {
+            var tokenRows = structDecl.tokens.SplitTokensByTokenType(TokenType.Eoln);
+            var strDef = new StructDeclaration();
+            strDef.Name = tokenRows[0][1].text;
+            for (var i = 1; i < tokenRows.Count - 1; i++)
+            {
+                var currRow = tokenRows[i];
+                StructField field = new StructField
+                {
+                    Name = currRow[0].text, 
+                    TypeTokens = currRow.Skip(1).ToArray()
+                };
+                strDef.Fields.Add(field);
+            }
+            return strDef;
         }
     }
 }
