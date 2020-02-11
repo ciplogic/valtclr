@@ -30,7 +30,7 @@ namespace Valt
                         var declarations = FirstPassCompiler.getTopLevelDeclarations(tokens.items);
                         
                         var c = new ValtCompiler();
-                        ModuleDeclaration moduleDefs = c.SetupDefinitions(declarations);
+                        ModuleDeclaration moduleDefs = FirstPassCompiler.SetupDefinitions(declarations);
                     }
                     catch(Exception ex)
                     {
@@ -42,12 +42,9 @@ namespace Valt
         }
 
         private static void CompileFile()
-        {
-            var content = File.ReadAllText("v-master/vlib/v/gen/tests/4.vv");
-            var tokens = Lexer.Tokenize(content);
-            var declarations = FirstPassCompiler.getTopLevelDeclarations(tokens.items);
+        {           
             var c = new ValtCompiler();
-            ModuleDeclaration moduleDefs = c.SetupDefinitions(declarations);
+            c.CompileFile("v-master/vlib/v/gen/tests/4.vv");
         }
     }
 }
