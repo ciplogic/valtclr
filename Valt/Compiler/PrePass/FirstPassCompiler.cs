@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Valt.Compiler.PrePass;
 
 namespace Valt.Compiler
 {
@@ -65,7 +66,7 @@ namespace Valt.Compiler
             return matchRange(tokens, pos, tokenText, matchToken);
         }
 
-        static void setMatchRule(ModuleDeclaration moduleDeclaration, ModuleDeclarationType declarationType,
+        static void setMatchRule(PreModuleDeclaration moduleDeclaration, ModuleDeclarationType declarationType,
             List<Token> tokens, int pos, int len, Token[] modifiers)
         {
             moduleDeclaration.Type = declarationType;
@@ -246,9 +247,9 @@ namespace Valt.Compiler
             return tokens.Count;
         }
 
-        public static List<ModuleDeclaration> getTopLevelDeclarations(List<Token> tokens)
+        public static List<PreModuleDeclaration> getTopLevelDeclarations(List<Token> tokens)
         {
-            List<ModuleDeclaration> result = new List<ModuleDeclaration>();
+            List<PreModuleDeclaration> result = new List<PreModuleDeclaration>();
 
             int pos = 0;
             while (pos < tokens.Count)
@@ -267,7 +268,7 @@ namespace Valt.Compiler
                         continue;
                     found = true;
 
-                    var decl = new ModuleDeclaration();
+                    var decl = new PreModuleDeclaration();
                     setMatchRule(decl, rule.Item1, tokens, pos, matchLen, modifiers);
                     result.Add(decl);
                     pos += matchLen;

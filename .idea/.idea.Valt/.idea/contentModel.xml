@@ -12,20 +12,27 @@
     <e p="$PROJECT_DIR$" t="IncludeFlat">
       <e p="Valt" t="IncludeRecursive">
         <e p="Compiler" t="Include">
-          <e p="Compiler.cs" t="Include" />
-          <e p="FirstPassCompiler.cs" t="Include" />
+          <e p="Declarations" t="Include">
+            <e p="Module.cs" t="Include" />
+          </e>
           <e p="Lex" t="Include">
             <e p="Lexer.cs" t="Include" />
             <e p="Token.cs" t="Include" />
           </e>
-          <e p="ModuleDeclaration.cs" t="Include" />
-          <e p="ModuleDeclarationType.cs" t="Include" />
+          <e p="PrePass" t="Include">
+            <e p="FirstPassCompiler.cs" t="Include" />
+            <e p="ModuleDeclarationType.cs" t="Include" />
+            <e p="PreModuleDeclaration.cs" t="Include" />
+          </e>
+          <e p="Utilities.cs" t="Include" />
+          <e p="ValtCompiler.cs" t="Include" />
         </e>
         <e p="Program.cs" t="Include" />
+        <e p="Todo.md" t="Include" />
         <e p="Valt.csproj" t="IncludeRecursive" />
         <e p="bin" t="ExcludeRecursive" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netcoreapp3.1" t="Include">
               <e p="Valt.AssemblyInfo.cs" t="Include" />
             </e>
@@ -38,9 +45,6 @@
         <e p="bin" t="ExcludeRecursive" />
         <e p="obj" t="ExcludeRecursive">
           <e p="Debug" t="Include">
-            <e p="netcoreapp3.1" t="Include" />
-          </e>
-          <e p="Release" t="Include">
             <e p="netcoreapp3.1" t="Include">
               <e p="Valt.XUnits.AssemblyInfo.cs" t="Include" />
             </e>

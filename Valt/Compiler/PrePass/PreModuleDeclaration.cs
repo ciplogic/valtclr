@@ -1,8 +1,8 @@
 using System.Linq;
 
-namespace Valt.Compiler
+namespace Valt.Compiler.PrePass
 {
-    public class ModuleDeclaration
+    public class PreModuleDeclaration
     {
         public ModuleDeclarationType Type;
         public Token[] modifiers;

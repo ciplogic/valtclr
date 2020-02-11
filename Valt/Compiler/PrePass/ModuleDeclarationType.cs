@@ -1,11 +1,9 @@
-namespace Valt.Compiler
+namespace Valt.Compiler.PrePass
 {
     public enum ModuleDeclarationType
     {
         Module,
         Function,
-        CFunction,
-        ExtensionFunction,
         Struct,
         Const,
         Type,

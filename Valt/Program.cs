@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Valt.Compiler;
+using Valt.Compiler.Declarations;
 
 namespace Valt
 {
@@ -15,9 +16,7 @@ namespace Valt
         }
         static void Main(string[] args)
         {
-            var content = File.ReadAllText("v-master/vlib/v/ast/ast.v");
-            var tokens = Lexer.Tokenize(content);
-            var declarations = FirstPassCompiler.getTopLevelDeclarations(tokens.items);
+            CompileFile();
             TimeIt("Built in", () =>
             {
                 var dirFiles = Directory.GetFiles("v-master/", "*.v", SearchOption.AllDirectories);
@@ -37,6 +36,15 @@ namespace Valt
                 }
 
             });
+        }
+
+        private static void CompileFile()
+        {
+            var content = File.ReadAllText("v-master/vlib/v/gen/tests/4.vv");
+            var tokens = Lexer.Tokenize(content);
+            var declarations = FirstPassCompiler.getTopLevelDeclarations(tokens.items);
+            var c = new ValtCompiler();
+            ModuleDeclaration moduleDefs = c.SetupDefinitions(declarations);
         }
     }
 }
