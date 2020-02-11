@@ -8,6 +8,11 @@ namespace Valt.Compiler.Declarations
     public class Module : NamedDeclaration
     {
         public List<ModuleDeclaration> Items { get; } = new List<ModuleDeclaration>();
+        public List<ImportDeclaration> Imports { get;  }= new List<ImportDeclaration>();
+    }
+
+    public class ImportDeclaration: NamedDeclaration
+    {
     }
 
     public class NamedDeclaration: ModuleDeclaration

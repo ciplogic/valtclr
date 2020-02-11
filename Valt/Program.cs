@@ -24,15 +24,11 @@ namespace Valt
                 {
                     try
                     {
-                        Console.WriteLine("Source: " + dirFile);
-                        var content = File.ReadAllText(dirFile);
-                        var tokens = Lexer.Tokenize(content);
-                        var declarations = FirstPassCompiler.getTopLevelDeclarations(tokens.items);
-                        
                         var c = new ValtCompiler();
-                        ModuleDeclaration moduleDefs = FirstPassCompiler.SetupDefinitions(declarations);
+                        Console.WriteLine("Compiling: " + dirFile);
+                        c.CompileFile(dirFile);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Console.WriteLine(ex.Message);
                     }

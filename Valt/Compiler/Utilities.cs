@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Valt.Compiler
 {
@@ -25,7 +26,7 @@ namespace Valt.Compiler
             return (matching, notMatching);
         }
 
-        public static List<Token[]> SplitTokensByTokenType(this IEnumerable<Token> tokens, TokenType tokenType)
+        public static Token[][] SplitTokensByTokenType(this IEnumerable<Token> tokens, TokenType tokenType, bool removeEmptyItems = true)
         {
             var result = new List<Token[]>();
             var currentRow = new List<Token>();
@@ -40,7 +41,9 @@ namespace Valt.Compiler
                 }
             }
             result.Add(currentRow.ToArray());
-            return result;
+            return result
+                .Where(it=>it.Length>0 || !removeEmptyItems)
+                .ToArray();
         }
     }
 }

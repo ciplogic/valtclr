@@ -11,11 +11,8 @@ namespace Valt.Compiler
         public static Module SetupDefinitions(List<PreModuleDeclaration> declarations)
         {
             var result = new Module();
-         
-            var splitOnStructs = declarations
-                .FilterSplit(decl => decl.Type == ModuleDeclarationType.Struct);
-            fillStructDeclarations(result, splitOnStructs.matching);
-            declarations = splitOnStructs.notMatching.ToList();
+            declarations = ExtractImportDeclarations(declarations, result);
+            declarations = ExtractStructDeclarations(declarations, result);
             foreach (var moduleDeclaration in declarations)
             {
                 
@@ -24,7 +21,51 @@ namespace Valt.Compiler
             return result;
         }
 
-        private static void fillStructDeclarations(Module result, List<PreModuleDeclaration> matching)
+        private static List<PreModuleDeclaration> ExtractImportDeclarations(List<PreModuleDeclaration> declarations, Module result)
+        {
+            var splitOnImports = declarations
+                .FilterSplit(decl => decl.Type == ModuleDeclarationType.Import);
+            foreach (var importDeclaration in splitOnImports.matching)
+            {
+                var tokenRows = importDeclaration.tokens
+                    .SplitTokensByTokenType(TokenType.Eoln)
+                    .Where(row=>row.Length>0)
+                    .ToArray();
+                if (tokenRows.Length == 1)
+                {
+                    //when importing just one item
+                    var item = new ImportDeclaration
+                    {
+                        Name = tokenRows[0][1].text
+                    };
+                    result.Imports.Add(item);
+                    continue;
+                }
+
+                for (var i = 1; i < tokenRows.Length - 1; i++)
+                {
+                    var item = new ImportDeclaration
+                    {
+                        Name = tokenRows[i][0].text
+                    };
+                    result.Imports.Add(item);
+                    continue;
+                }
+
+            }
+
+            return splitOnImports.notMatching;
+        }
+
+        private static List<PreModuleDeclaration> ExtractStructDeclarations(List<PreModuleDeclaration> declarations, Module result)
+        {
+            var splitOnStructs = declarations
+                .FilterSplit(decl => decl.Type == ModuleDeclarationType.Struct);
+            FillStructDeclarations(result, splitOnStructs.matching);
+            return splitOnStructs.notMatching;
+        }
+
+        private static void FillStructDeclarations(Module result, List<PreModuleDeclaration> matching)
         {
             foreach (var structDecl in matching)
             {
@@ -40,7 +81,7 @@ namespace Valt.Compiler
             {
                 Name = tokenRows[0][1].text
             };
-            for (var i = 1; i < tokenRows.Count - 1; i++)
+            for (var i = 1; i < tokenRows.Length - 1; i++)
             {
                 var currRow = tokenRows[i];
                 if (currRow.Length == 0)
