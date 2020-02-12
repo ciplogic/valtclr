@@ -9,7 +9,7 @@ namespace Valt.Compiler.Lex
 
         static int MatchAll(string text, int start, Func<char, bool> charMatcher)
         {
-            for (int i = start; i < text.Length; i++)
+            for (var i = start; i < text.Length; i++)
             {
                 if (!charMatcher(text[i]))
                     return i - start;
@@ -38,11 +38,11 @@ namespace Valt.Compiler.Lex
             }
 
             var upperBound = text.Length - endText.Length + 1;
-            for (int i = pos + startText.Length; i < upperBound; i++)
+            for (var i = pos + startText.Length; i < upperBound; i++)
             {
                 if (text[i] != endText[0])
                     continue;
-                string potentialMatch = text.Substring(i, endText.Length);
+                var potentialMatch = text.Substring(i, endText.Length);
                 if (potentialMatch == endText)
                     return i + endText.Length - pos;
             }
@@ -102,7 +102,7 @@ namespace Valt.Compiler.Lex
 
         static int matchReserved(string text, int pos)
         {
-            int matchId = matchIdentifier(text, pos);
+            var matchId = matchIdentifier(text, pos);
             if (matchId == 0)
                 return 0;
             foreach (var rw in ReservedWords)
@@ -153,10 +153,10 @@ namespace Valt.Compiler.Lex
                     return 0;
             }
 
-            char startChar = text[pos];
-            for (int i = pos + 1; i < text.Length; i++)
+            var startChar = text[pos];
+            for (var i = pos + 1; i < text.Length; i++)
             {
-                char ch = text[i];
+                var ch = text[i];
                 if (ch == '\\')
                 {
                     i++;
@@ -262,7 +262,7 @@ namespace Valt.Compiler.Lex
 
         static string reducedMessage(string text, int pos)
         {
-            string remainder = text.Substring(pos);
+            var remainder = text.Substring(pos);
             var posEoln = remainder.IndexOf('\n');
             if (posEoln != -1)
             {
@@ -286,16 +286,16 @@ namespace Valt.Compiler.Lex
 
         public static (List<Token> items, string err) Tokenize(string text)
         {
-            List<Token> resultTokens = new List<Token>(text.Length>>2);
+            var resultTokens = new List<Token>(text.Length>>2);
 
             var tokenMatchers = matchers;
-            int pos = 0;
+            var pos = 0;
             while (pos < text.Length)
             {
-                bool found = false;
+                var found = false;
                 foreach (var matcher in tokenMatchers)
                 {
-                    int matchLen = matcher.Item2(text, pos);
+                    var matchLen = matcher.Item2(text, pos);
                     if (matchLen == 0)
                         continue;
                     found = true;
@@ -304,7 +304,7 @@ namespace Valt.Compiler.Lex
                         pos += matchLen;
                         break;
                     }
-                    string foundText = text.Substring(pos, matchLen);
+                    var foundText = text.Substring(pos, matchLen);
                     pos += matchLen;
                     var token = new Token() {text = foundText, type = matcher.Item1};
                     //Console.WriteLine("Found:"+token);

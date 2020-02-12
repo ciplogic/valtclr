@@ -4,6 +4,7 @@ using System.IO;
 using Valt.Compiler.Declarations;
 using Valt.Compiler.Lex;
 using Valt.Compiler.PrePass;
+using Valt.Compiler.Typing;
 
 namespace Valt.Compiler
 {
@@ -11,6 +12,7 @@ namespace Valt.Compiler
     {
         Dictionary<string, CompiledModule> modules = new Dictionary<string, CompiledModule>();
         public FileResolver FileResolver { get; } = new FileResolver();
+        TypeResolver _typeResolver = new TypeResolver();
         public void CompileFile(string fileName)
         {
             var fullFileName = FileResolver.GetFullFileName(fileName);
@@ -20,7 +22,7 @@ namespace Valt.Compiler
             var tokens = Lexer.Tokenize(content);
             var declarations = FirstPassCompiler.getTopLevelDeclarations(tokens.items);
  
-            Module moduleDefs = FirstPassCompiler.SetupDefinitions(declarations);
+            var moduleDefs = FirstPassCompiler.SetupDefinitions(declarations, _typeResolver);
             var compiledModule = new CompiledModule(moduleDefs);
             modules[fullFileName] = compiledModule;
 

@@ -32,16 +32,25 @@ namespace Valt.Compiler.Declarations
             {
                 strDef.Name = strDefName;
             }
+
+            var modifiers = DeclarationModifiers.None;
             for (var i = 1; i < tokenRows.Length - 1; i++)
             {
                 var currRow = tokenRows[i];
                 if (currRow.Length == 0)
                     continue;
+
+                if (currRow[^1].text == ":")
+                {
+                    modifiers = DeclarationModifierUtilities.Parse(currRow);
+                    continue;
+                }
                 
-                StructField field = new StructField
+                var field = new StructField
                 {
                     Name = currRow[0].text, 
-                    TypeTokens = currRow.Skip(1).ToArray()
+                    TypeTokens = currRow.Skip(1).ToArray(),
+                    Modifiers = modifiers
                 };
                 strDef.Fields.Add(field);
             }

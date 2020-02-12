@@ -3,16 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using Valt.Compiler.Declarations;
 using Valt.Compiler.Lex;
+using Valt.Compiler.Typing;
 
 namespace Valt.Compiler.PrePass
 {
     public static class FirstPassCompiler
     {
-        public static Module SetupDefinitions(List<PreModuleDeclaration> declarations)
+        public static Module SetupDefinitions(List<PreModuleDeclaration> declarations, TypeResolver typeResolver)
         {
             var result = new Module();
-            declarations = ExtractImportDeclarations(declarations, result);
-            declarations = ExtractStructDeclarations(declarations, result);
+            declarations = ExtractImportDeclarations(declarations, result, typeResolver);
+            declarations = ExtractStructDeclarations(declarations, result, typeResolver);
             foreach (var moduleDeclaration in declarations)
             {
                 
@@ -21,7 +22,8 @@ namespace Valt.Compiler.PrePass
             return result;
         }
 
-        private static List<PreModuleDeclaration> ExtractImportDeclarations(List<PreModuleDeclaration> declarations, Module result)
+        private static List<PreModuleDeclaration> ExtractImportDeclarations(List<PreModuleDeclaration> declarations,
+            Module result, TypeResolver typeResolver)
         {
             var splitOnImports = declarations
                 .FilterSplit(decl => decl.Type == ModuleDeclarationType.Import);
@@ -57,15 +59,17 @@ namespace Valt.Compiler.PrePass
             return splitOnImports.notMatching;
         }
 
-        private static List<PreModuleDeclaration> ExtractStructDeclarations(List<PreModuleDeclaration> declarations, Module result)
+        private static List<PreModuleDeclaration> ExtractStructDeclarations(List<PreModuleDeclaration> declarations,
+            Module result, TypeResolver typeResolver)
         {
             var splitOnStructs = declarations
                 .FilterSplit(decl => decl.Type == ModuleDeclarationType.Struct);
             declarations = splitOnStructs.notMatching;
+            var structs = new List<StructDeclaration>();
             foreach (var structDecl in splitOnStructs.matching)
             {
                 var strDef = StructDeclaration.DeclarationEvaluation(structDecl);
-                result.Types.Add(strDef);
+                structs.Add(strDef);
             }
 
             splitOnStructs = declarations
@@ -81,6 +85,10 @@ namespace Valt.Compiler.PrePass
             {
                 result.Name = structDecl.tokens[1].text;
             }
+            result.Types.AddRange(structs);
+            typeResolver.RegisterTypes(result.Name, structs.Select(s => s.Name), ResolvedTypeKind.Struct, 
+                structs.Select(i=>(NamedDeclaration)i).ToArray());
+
             return splitOnStructs.notMatching;
         }
 
@@ -89,7 +97,7 @@ namespace Valt.Compiler.PrePass
         {
             if (tokens[pos].text != tokenText)
                 return 0;
-            for (int i = pos + 1; i < tokens.Count; i++)
+            for (var i = pos + 1; i < tokens.Count; i++)
             {
                 if (matchToken(tokens[i]))
                     return i - pos + 1;
@@ -107,8 +115,8 @@ namespace Valt.Compiler.PrePass
         {
             if (tokens[start].text != openParen)
                 return -1;
-            int openParens = 1;
-            for (int i = start + 1; i < tokens.Count; i++)
+            var openParens = 1;
+            for (var i = start + 1; i < tokens.Count; i++)
             {
                 if (tokens[i].text == openParen)
                     openParens++;
@@ -126,7 +134,7 @@ namespace Valt.Compiler.PrePass
         {
             moduleDeclaration.Type = declarationType;
             var moduleTokens = new List<Token>();
-            for (int i = 0; i < len; i++)
+            for (var i = 0; i < len; i++)
             {
                 moduleTokens.Add(tokens[pos + i]);
             }
@@ -149,7 +157,7 @@ namespace Valt.Compiler.PrePass
 
         static int MatchSpaces(List<Token> tokens, int pos)
         {
-            for (int i = pos; i < tokens.Count; i++)
+            for (var i = pos; i < tokens.Count; i++)
             {
                 if (!IsSpaceToken(tokens[i]))
                     return i - pos;
@@ -161,13 +169,13 @@ namespace Valt.Compiler.PrePass
 
         static int MatchModule(List<Token> tokens, int pos)
         {
-            int matchLen = MatchRange(tokens, pos, "module", TokenType.Eoln);
+            var matchLen = MatchRange(tokens, pos, "module", TokenType.Eoln);
             return matchLen;
         }
 
         static int MatchType(List<Token> tokens, int pos)
         {
-            int matchLen = MatchRange(tokens, pos, "type", TokenType.Eoln);
+            var matchLen = MatchRange(tokens, pos, "type", TokenType.Eoln);
             if (matchLen == 0)
                 return 0;
             var lastToken = matchLen + pos - 2;
@@ -184,7 +192,7 @@ namespace Valt.Compiler.PrePass
         }
         static int MatchGlobal(List<Token> tokens, int pos)
         {
-            int matchLen = MatchRange(tokens, pos, "__global", TokenType.Eoln);
+            var matchLen = MatchRange(tokens, pos, "__global", TokenType.Eoln);
             return matchLen;
         }
 
@@ -203,13 +211,13 @@ namespace Valt.Compiler.PrePass
         static int MatchDefinitionWithOptionalBlock(List<Token> tokens, int pos,
             string keyword, string openParen, string closeParen)
         {
-            int matchLen = MatchRange(tokens, pos, keyword, TokenType.Eoln);
+            var matchLen = MatchRange(tokens, pos, keyword, TokenType.Eoln);
             if (matchLen == 0)
                 return 0;
-            string text = tokens[pos + matchLen - 2].text;
+            var text = tokens[pos + matchLen - 2].text;
             if (text == openParen)
             {
-                int matchParenLen = MatchParenPos(tokens, pos + matchLen - 2, openParen, closeParen);
+                var matchParenLen = MatchParenPos(tokens, pos + matchLen - 2, openParen, closeParen);
                 return matchParenLen - pos + 1;
             }
             return matchLen;
@@ -304,12 +312,12 @@ namespace Valt.Compiler.PrePass
 
         public static List<PreModuleDeclaration> getTopLevelDeclarations(List<Token> tokens)
         {
-            List<PreModuleDeclaration> result = new List<PreModuleDeclaration>();
+            var result = new List<PreModuleDeclaration>();
 
-            int pos = 0;
+            var pos = 0;
             while (pos < tokens.Count)
             {
-                bool found = false;
+                var found = false;
                 var (modifiers, newPos) = GetModifiersAtPos(tokens, pos);
                 pos = newPos;
                 if (pos == tokens.Count)
@@ -318,7 +326,7 @@ namespace Valt.Compiler.PrePass
                 }
                 foreach (var rule in ParseMatchersVec)
                 {
-                    int matchLen = rule.Item2(tokens, pos);
+                    var matchLen = rule.Item2(tokens, pos);
                     if (matchLen == 0)
                         continue;
                     found = true;
@@ -332,7 +340,7 @@ namespace Valt.Compiler.PrePass
 
                 if (!found)
                 {
-                    string message = "Cannot find rule at: " + tokens[pos].text;
+                    var message = "Cannot find rule at: " + tokens[pos].text;
                     Console.WriteLine(message);
                     throw new Exception(message);
                 }
@@ -361,7 +369,7 @@ namespace Valt.Compiler.PrePass
             }
             while (true)
             {
-                bool found = false;
+                var found = false;
                 switch (tokens[startPos].text)
                 {
                     case "pub":

@@ -32,7 +32,7 @@ namespace Valt.Compiler
 
             var vFiles = Directory.GetFiles(path, "*.v")
                 .Where(fName=>!fName.EndsWith("_test.v"))
-                .Select(fName => GetFullFileName(fName))
+                .Select(GetFullFileName)
                 .ToArray();
 
             return vFiles;
