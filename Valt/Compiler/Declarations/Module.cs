@@ -9,10 +9,11 @@ namespace Valt.Compiler.Declarations
     {
         public List<ModuleDeclaration> Items { get; } = new List<ModuleDeclaration>();
         public List<ImportDeclaration> Imports { get;  }= new List<ImportDeclaration>();
-    }
 
-    public class ImportDeclaration: NamedDeclaration
-    {
+        public string[] ImportNames
+        {
+            get => Imports.Select(it => it.Name).ToArray();
+        }
     }
 
     public class NamedDeclaration: ModuleDeclaration
@@ -44,6 +45,5 @@ namespace Valt.Compiler.Declarations
 
     public class ModuleDeclaration
     {
-        
     }
 }

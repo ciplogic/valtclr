@@ -18,5 +18,10 @@ namespace Valt.Compiler
             
             throw new FileNotFoundException(fileName);
         }
+
+        public string ResolveModule(string importFile)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
