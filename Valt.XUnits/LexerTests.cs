@@ -1,5 +1,6 @@
 using System;
 using Valt.Compiler;
+using Valt.Compiler.Lex;
 using Xunit;
 
 namespace Valt.XUnits

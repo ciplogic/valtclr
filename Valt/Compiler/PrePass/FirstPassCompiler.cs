@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Valt.Compiler.Declarations;
-using Valt.Compiler.PrePass;
+using Valt.Compiler.Lex;
 
-namespace Valt.Compiler
+namespace Valt.Compiler.PrePass
 {
     public static class FirstPassCompiler
     {
@@ -61,43 +61,31 @@ namespace Valt.Compiler
         {
             var splitOnStructs = declarations
                 .FilterSplit(decl => decl.Type == ModuleDeclarationType.Struct);
-            FillStructDeclarations(result, splitOnStructs.matching);
+            declarations = splitOnStructs.notMatching;
+            foreach (var structDecl in splitOnStructs.matching)
+            {
+                var strDef = StructDeclaration.DeclarationEvaluation(structDecl);
+                result.Types.Add(strDef);
+            }
+
+            splitOnStructs = declarations
+                .FilterSplit(decl => decl.Type == ModuleDeclarationType.Enum);
+            foreach (var structDecl in splitOnStructs.matching)
+            {
+                var enumDeclaration = EnumDeclaration.DeclarationEvaluation(structDecl);
+                result.Types.Add(enumDeclaration);
+            }
+            splitOnStructs = declarations
+                .FilterSplit(decl => decl.Type == ModuleDeclarationType.Module);
+            foreach (var structDecl in splitOnStructs.matching)
+            {
+                result.Name = structDecl.tokens[1].text;
+            }
             return splitOnStructs.notMatching;
         }
 
-        private static void FillStructDeclarations(Module result, List<PreModuleDeclaration> matching)
-        {
-            foreach (var structDecl in matching)
-            {
-                var strDef = StructDeclarationEvaluation(structDecl);
-                result.Items.Add(strDef);
-            }
-        }
 
-        private static StructDeclaration StructDeclarationEvaluation(PreModuleDeclaration structDecl)
-        {
-            var tokenRows = structDecl.tokens.SplitTokensByTokenType(TokenType.Eoln);
-            var strDef = new StructDeclaration
-            {
-                Name = tokenRows[0][1].text
-            };
-            for (var i = 1; i < tokenRows.Length - 1; i++)
-            {
-                var currRow = tokenRows[i];
-                if (currRow.Length == 0)
-                    continue;
-                
-                StructField field = new StructField
-                {
-                    Name = currRow[0].text, 
-                    TypeTokens = currRow.Skip(1).ToArray()
-                };
-                strDef.Fields.Add(field);
-            }
-            return strDef;
-        }
-
-        static int matchRange(List<Token> tokens, int pos, string tokenText, Func<Token, bool> matchToken)
+        static int MatchRange(List<Token> tokens, int pos, string tokenText, Func<Token, bool> matchToken)
         {
             if (tokens[pos].text != tokenText)
                 return 0;
@@ -110,12 +98,12 @@ namespace Valt.Compiler
             return 0;
         }
 
-        static int matchRange(List<Token> tokens, int pos, string tokenText, TokenType tokenType)
+        static int MatchRange(List<Token> tokens, int pos, string tokenText, TokenType tokenType)
         {
-            return matchRange(tokens, pos, tokenText, tok => tok.type == tokenType);
+            return MatchRange(tokens, pos, tokenText, tok => tok.type == tokenType);
         }
 
-        static int matchParenPos(List<Token> tokens, int start, string openParen, string closeParen)
+        static int MatchParenPos(List<Token> tokens, int start, string openParen, string closeParen)
         {
             if (tokens[start].text != openParen)
                 return -1;
@@ -132,31 +120,8 @@ namespace Valt.Compiler
 
             return -1;
         }
-        static int matchParen(List<Token> tokens, int start, string openParen, string closeParen)
-        {
-            if (tokens[start].text != openParen)
-                return 0;
-            int openParens = 1;
-            for (int i = start + 1; i < tokens.Count; i++)
-            {
-                if (tokens[i].text == openParen)
-                    openParens++;
-                if (tokens[i].text == closeParen)
-                    openParens--;
-                if (openParens == 0)
-                    return i - start + 1;
-            }
 
-            return 0;
-        }
-
-        static int matchRange(List<Token> tokens, int pos, string tokenText, string endToken)
-        {
-            Func<Token, bool> matchToken = (Token tok) => tok.text == endToken;
-            return matchRange(tokens, pos, tokenText, matchToken);
-        }
-
-        static void setMatchRule(PreModuleDeclaration moduleDeclaration, ModuleDeclarationType declarationType,
+        static void SetMatchRule(PreModuleDeclaration moduleDeclaration, ModuleDeclarationType declarationType,
             List<Token> tokens, int pos, int len, Token[] modifiers)
         {
             moduleDeclaration.Type = declarationType;
@@ -170,7 +135,7 @@ namespace Valt.Compiler
             moduleDeclaration.modifiers = modifiers;
         }
 
-        static bool isSpaceToken(Token token)
+        static bool IsSpaceToken(Token token)
         {
             switch (token.type)
             {
@@ -182,11 +147,11 @@ namespace Valt.Compiler
             }
         }
 
-        static int matchSpaces(List<Token> tokens, int pos)
+        static int MatchSpaces(List<Token> tokens, int pos)
         {
             for (int i = pos; i < tokens.Count; i++)
             {
-                if (!isSpaceToken(tokens[i]))
+                if (!IsSpaceToken(tokens[i]))
                     return i - pos;
             }
 
@@ -194,37 +159,37 @@ namespace Valt.Compiler
         }
 
 
-        static int matchModule(List<Token> tokens, int pos)
+        static int MatchModule(List<Token> tokens, int pos)
         {
-            int matchLen = matchRange(tokens, pos, "module", TokenType.Eoln);
+            int matchLen = MatchRange(tokens, pos, "module", TokenType.Eoln);
             return matchLen;
         }
 
-        static int matchType(List<Token> tokens, int pos)
+        static int MatchType(List<Token> tokens, int pos)
         {
-            int matchLen = matchRange(tokens, pos, "type", TokenType.Eoln);
+            int matchLen = MatchRange(tokens, pos, "type", TokenType.Eoln);
             if (matchLen == 0)
                 return 0;
             var lastToken = matchLen + pos - 2;
             while (tokens[lastToken].text == "|")
             {
-                var lastTokenLocal = matchTokenWithType(tokens, lastToken + 2, TokenType.Eoln);
+                var lastTokenLocal = MatchTokenWithType(tokens, lastToken + 2, TokenType.Eoln);
                 lastToken = lastTokenLocal - 1;
             }
             return lastToken - pos + 1;
         }
-        static int matchEnum(List<Token> tokens, int pos)
+        static int MatchEnum(List<Token> tokens, int pos)
         {
-            return matchDeclarationWithBlock(tokens, pos, "enum", "{", "}");
+            return MatchDeclarationWithBlock(tokens, pos, "enum", "{", "}");
         }
-        static int matchGlobal(List<Token> tokens, int pos)
+        static int MatchGlobal(List<Token> tokens, int pos)
         {
-            int matchLen = matchRange(tokens, pos, "__global", TokenType.Eoln);
+            int matchLen = MatchRange(tokens, pos, "__global", TokenType.Eoln);
             return matchLen;
         }
 
 
-        static int matchPragma(List<Token> tokens, int pos)
+        static int MatchPragma(List<Token> tokens, int pos)
         {
             switch (tokens[pos].type)
             {
@@ -235,49 +200,49 @@ namespace Valt.Compiler
             }
         }
 
-        static int matchDefinitionWithOptionalBlock(List<Token> tokens, int pos,
+        static int MatchDefinitionWithOptionalBlock(List<Token> tokens, int pos,
             string keyword, string openParen, string closeParen)
         {
-            int matchLen = matchRange(tokens, pos, keyword, TokenType.Eoln);
+            int matchLen = MatchRange(tokens, pos, keyword, TokenType.Eoln);
             if (matchLen == 0)
                 return 0;
             string text = tokens[pos + matchLen - 2].text;
             if (text == openParen)
             {
-                int matchParenLen = matchParenPos(tokens, pos + matchLen - 2, openParen, closeParen);
+                int matchParenLen = MatchParenPos(tokens, pos + matchLen - 2, openParen, closeParen);
                 return matchParenLen - pos + 1;
             }
             return matchLen;
         }
 
 
-        static int matchImport(List<Token> tokens, int pos)
+        static int MatchImport(List<Token> tokens, int pos)
         {
-            return matchDefinitionWithOptionalBlock(tokens, pos, "import", "(", ")");
+            return MatchDefinitionWithOptionalBlock(tokens, pos, "import", "(", ")");
         }
 
-        static int matchConst(List<Token> tokens, int pos)
+        static int MatchConst(List<Token> tokens, int pos)
         {
-            return matchDefinitionWithOptionalBlock(tokens, pos, "const", "(", ")");
+            return MatchDefinitionWithOptionalBlock(tokens, pos, "const", "(", ")");
         }
 
-        static int matchFn(List<Token> tokens, int pos)
+        static int MatchFn(List<Token> tokens, int pos)
         {
-            return matchDefinitionWithOptionalBlock(tokens, pos, "fn", "{", "}");
+            return MatchDefinitionWithOptionalBlock(tokens, pos, "fn", "{", "}");
         }
-        static int matchInterface(List<Token> tokens, int pos)
+        static int MatchInterface(List<Token> tokens, int pos)
         {
-            return matchDefinitionWithOptionalBlock(tokens, pos, "interface", "{", "}");
+            return MatchDefinitionWithOptionalBlock(tokens, pos, "interface", "{", "}");
         }
 
-        static int matchTokenWithType(List<Token> tokens, int pos, TokenType tokenType)
+        static int MatchTokenWithType(List<Token> tokens, int pos, TokenType tokenType)
         {
             for(var i =pos; i<tokens.Count; i++)
                 if (tokens[i].type == tokenType)
                     return i;
             return -1;
         }
-        static int matchTokenWithText(List<Token> tokens, int pos, string text)
+        static int MatchTokenWithText(List<Token> tokens, int pos, string text)
         {
             for(var i =pos; i<tokens.Count; i++)
                 if (tokens[i].text == text)
@@ -285,23 +250,23 @@ namespace Valt.Compiler
             return -1;
         }
 
-        static int matchDeclarationWithBlock(List<Token> tokens, int pos, string startText, string openParen, string closeParen)
+        static int MatchDeclarationWithBlock(List<Token> tokens, int pos, string startText, string openParen, string closeParen)
         {
             
             if (tokens[pos].text != startText)
                 return 0;
-            var openCurly = matchTokenWithText(tokens, pos + 1, openParen);
-            var closeParenPos = matchParenPos(tokens, openCurly, openParen, closeParen);
+            var openCurly = MatchTokenWithText(tokens, pos + 1, openParen);
+            var closeParenPos = MatchParenPos(tokens, openCurly, openParen, closeParen);
             return closeParenPos - pos + 1;
         }
 
-        static int matchStruct(List<Token> tokens, int pos)
+        static int MatchStruct(List<Token> tokens, int pos)
         {
-            return matchDeclarationWithBlock(tokens, pos, "struct", "{", "}");
+            return MatchDeclarationWithBlock(tokens, pos, "struct", "{", "}");
         }
-        static int matchUnion(List<Token> tokens, int pos)
+        static int MatchUnion(List<Token> tokens, int pos)
         {
-            return matchDeclarationWithBlock(tokens, pos, "union", "{", "}");
+            return MatchDeclarationWithBlock(tokens, pos, "union", "{", "}");
         }
 
         
@@ -309,18 +274,18 @@ namespace Valt.Compiler
 
         private static (ModuleDeclarationType, Func<List<Token>, int, int>)[] ParseMatchersVec =
         {
-            (ModuleDeclarationType.Spaces, matchSpaces),
-            (ModuleDeclarationType.Module, matchModule),
-            (ModuleDeclarationType.Type, matchType),
-            (ModuleDeclarationType.Global, matchGlobal),
-            (ModuleDeclarationType.Enum, matchEnum),
-            (ModuleDeclarationType.Const, matchConst),
-            (ModuleDeclarationType.Function, matchFn),
-            (ModuleDeclarationType.Struct, matchStruct),
-            (ModuleDeclarationType.Union, matchUnion),
-            (ModuleDeclarationType.Interface, matchInterface),
-            (ModuleDeclarationType.Import, matchImport),
-            (ModuleDeclarationType.Pragma, matchPragma),
+            (ModuleDeclarationType.Spaces, MatchSpaces),
+            (ModuleDeclarationType.Module, MatchModule),
+            (ModuleDeclarationType.Type, MatchType),
+            (ModuleDeclarationType.Global, MatchGlobal),
+            (ModuleDeclarationType.Enum, MatchEnum),
+            (ModuleDeclarationType.Const, MatchConst),
+            (ModuleDeclarationType.Function, MatchFn),
+            (ModuleDeclarationType.Struct, MatchStruct),
+            (ModuleDeclarationType.Union, MatchUnion),
+            (ModuleDeclarationType.Interface, MatchInterface),
+            (ModuleDeclarationType.Import, MatchImport),
+            (ModuleDeclarationType.Pragma, MatchPragma),
         };
 
 
@@ -359,7 +324,7 @@ namespace Valt.Compiler
                     found = true;
 
                     var decl = new PreModuleDeclaration();
-                    setMatchRule(decl, rule.Item1, tokens, pos, matchLen, modifiers);
+                    SetMatchRule(decl, rule.Item1, tokens, pos, matchLen, modifiers);
                     result.Add(decl);
                     pos += matchLen;
                     break;
@@ -371,7 +336,6 @@ namespace Valt.Compiler
                     Console.WriteLine(message);
                     throw new Exception(message);
                 }
-
             }
 
             return result;
@@ -387,7 +351,7 @@ namespace Valt.Compiler
             }
             if (tokens[startPos].text == "[")
             {
-                var endPos = matchParenPos(tokens, startPos, "[", "]");
+                var endPos = MatchParenPos(tokens, startPos, "[", "]");
                 for (var i = startPos; i <= endPos; i++)
                 {
                     modifiers.Add(tokens[i]);

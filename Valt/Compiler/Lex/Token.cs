@@ -1,4 +1,4 @@
-namespace Valt.Compiler
+namespace Valt.Compiler.Lex
 {
     public struct Token
     {

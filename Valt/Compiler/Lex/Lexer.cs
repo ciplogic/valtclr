@@ -2,26 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Valt.Compiler
+namespace Valt.Compiler.Lex
 {
-    public enum TokenType
-    {
-        Identifier,
-        Number,
-        Spaces,
-        Eoln,
-        Quote,
-        Reserved,
-        Operator,
-        Comment,
-        SharpPragmaOrInclude,
-        Directive,
-    };
-
     public class Lexer
     {
 
-        static int matchAll(string text, int start, Func<char, bool> charMatcher)
+        static int MatchAll(string text, int start, Func<char, bool> charMatcher)
         {
             for (int i = start; i < text.Length; i++)
             {
@@ -32,11 +18,11 @@ namespace Valt.Compiler
             return text.Length - start;
         }
 
-        static int matchAllStart(string text, int start, Func<char, bool> startMatcher, Func<char, bool> charMatcher)
+        static int MatchAllStart(string text, int start, Func<char, bool> startMatcher, Func<char, bool> charMatcher)
         {
             if (!startMatcher(text[start]))
                 return 0;
-            return matchAll(text, start + 1, charMatcher) + 1;
+            return MatchAll(text, start + 1, charMatcher) + 1;
         }
 
         static int matchAllStart(string text, int pos, string startText, string endText)
@@ -74,20 +60,20 @@ namespace Valt.Compiler
             return (ch >= '0' && ch <= '9');
         }
 
-        static bool isAlphaNum(char ch)
+        static bool IsAlphaNum(char ch)
         {
             return isAlpha(ch) || isNum(ch);
         }
 
 
-        static int matchNumbers(string text, int pos)
+        static int MatchNumbers(string text, int pos)
         {
-            return matchAll(text, pos, isNum);
+            return MatchAll(text, pos, isNum);
         }
 
         static int matchIdentifier(string text, int pos)
         {
-            return matchAllStart(text, pos, isAlpha, isAlphaNum);
+            return MatchAllStart(text, pos, isAlpha, IsAlphaNum);
         }
 
         static string[] ReservedWords =
@@ -186,19 +172,19 @@ namespace Valt.Compiler
             return 0;
         }
 
-        static int matchDirective(string text, int pos)
+        static int MatchDirective(string text, int pos)
         {
             if (text[pos] != '$')
                 return 0;
             return 1 + matchIdentifier(text, pos + 1);
         }
 
-        static int matchPragmas(string text, int pos)
+        static int MatchPragmas(string text, int pos)
         {
             return matchAllStart(text, pos, "#", "\n");
         }
 
-        static bool isSpace(char ch)
+        static bool IsSpace(char ch)
         {
             switch (ch)
             {
@@ -210,15 +196,15 @@ namespace Valt.Compiler
             }
         }
 
-        static int matchSpaces(string text, int pos)
+        static int MatchSpaces(string text, int pos)
         {
-            return matchAll(text, pos, isSpace);
+            return MatchAll(text, pos, IsSpace);
         }
 
         static string[] operators =
         {
             "(", ")",
-            "..", ".",
+            "...", "..", ".",
             ";",
             ":=",
             ":", "~", "?",
@@ -236,17 +222,6 @@ namespace Valt.Compiler
             "[", "]", "{", "}",
             ",", "^"
         };
-
-        static bool isEoln(char ch)
-        {
-            return ch == '\n' || ch == '\r';
-        }
-
-        static int matchEoln(string text, int pos)
-        {
-            return matchAll(text, pos, isEoln);
-        }
-
         static int matchOperators(string text, int pos)
         {
             foreach (var op in operators)
@@ -260,6 +235,17 @@ namespace Valt.Compiler
             return 0;
         }
 
+
+        static bool IsEoln(char ch)
+        {
+            return ch == '\n' || ch == '\r';
+        }
+
+        static int matchEoln(string text, int pos)
+        {
+            return MatchAll(text, pos, IsEoln);
+        }
+
         static (TokenType, Func<string, int, int>)[] matchers =
         {
             (TokenType.Comment, matchComment),
@@ -267,11 +253,11 @@ namespace Valt.Compiler
             (TokenType.Reserved, matchReserved),
             (TokenType.Identifier, matchIdentifier),
             (TokenType.Eoln, matchEoln),
-            (TokenType.Spaces, matchSpaces),
+            (TokenType.Spaces, MatchSpaces),
             (TokenType.Quote, matchQuote),
-            (TokenType.Directive, matchDirective),
-            (TokenType.SharpPragmaOrInclude, matchPragmas),
-            (TokenType.Number, matchNumbers),
+            (TokenType.Directive, MatchDirective),
+            (TokenType.SharpPragmaOrInclude, MatchPragmas),
+            (TokenType.Number, MatchNumbers),
         };
 
         static string reducedMessage(string text, int pos)

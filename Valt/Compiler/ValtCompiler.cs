@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Valt.Compiler.Declarations;
+using Valt.Compiler.Lex;
+using Valt.Compiler.PrePass;
 
 namespace Valt.Compiler
 {
@@ -11,7 +13,7 @@ namespace Valt.Compiler
         public FileResolver FileResolver { get; } = new FileResolver();
         public void CompileFile(string fileName)
         {
-            var fullFileName = CompiledModule.GetFullFileName(fileName);
+            var fullFileName = FileResolver.GetFullFileName(fileName);
             if (modules.ContainsKey(fullFileName))
                 return;
             var content = File.ReadAllText(fullFileName);
@@ -30,7 +32,11 @@ namespace Valt.Compiler
         {
             foreach (var importFile in imports)
             {
-                string resolvedFile = FileResolver.ResolveModule(importFile);
+                var resolvedFiles = FileResolver.ResolveModule(importFile);
+                foreach (var resolvedFile in resolvedFiles)
+                {
+                    CompileFile(resolvedFile);
+                }
             }
         }
     }

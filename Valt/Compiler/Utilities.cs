@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Valt.Compiler.Lex;
 
 namespace Valt.Compiler
 {

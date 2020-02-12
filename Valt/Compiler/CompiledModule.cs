@@ -3,7 +3,7 @@ using Valt.Compiler.Declarations;
 
 namespace Valt.Compiler
 {
-    internal class CompiledModule
+    public class CompiledModule
     {
         public string Name = "main";
         private string _fileName;
@@ -16,15 +16,9 @@ namespace Valt.Compiler
         public string FileName
         {
             get => _fileName;
-            set { _fileName = GetFullFileName(value); }
+            set { _fileName = FileResolver.GetFullFileName(value); }
         }
 
         public ModuleDeclaration Module { get; set; }
-
-        public static string GetFullFileName(string value)
-        {
-            var fileInfo = new FileInfo(value);
-            return fileInfo.FullName;
-        }
     }
 }

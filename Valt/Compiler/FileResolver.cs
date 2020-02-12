@@ -1,15 +1,12 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Valt.Compiler
 {
     public class FileResolver
     {
-        public List<string> SearchPaths = new List<string>()
-        {
-            ".",
-            "v-master/vlib"
-        };
+        public string VLibPath = "v-master/vlib";
 
         public string ResolveFile(string fileName)
         {
@@ -19,9 +16,26 @@ namespace Valt.Compiler
             throw new FileNotFoundException(fileName);
         }
 
-        public string ResolveModule(string importFile)
+
+        public static string GetFullFileName(string value)
         {
-            throw new System.NotImplementedException();
+            var fileInfo = new FileInfo(value);
+            return fileInfo.FullName;
+        }
+        public string[] ResolveModule(string runtimeModule)
+        {
+            var path = Path.Join(VLibPath, runtimeModule);
+            if (!Directory.Exists(path))
+            {
+                return new string[0];
+            }
+
+            var vFiles = Directory.GetFiles(path, "*.v")
+                .Where(fName=>!fName.EndsWith("_test.v"))
+                .Select(fName => GetFullFileName(fName))
+                .ToArray();
+
+            return vFiles;
         }
     }
 }

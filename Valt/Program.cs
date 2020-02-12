@@ -25,7 +25,8 @@ namespace Valt
                     try
                     {
                         var c = new ValtCompiler();
-                        Console.WriteLine("Compiling: " + dirFile);
+                        var fullName = FileResolver.GetFullFileName(dirFile);
+                        Console.WriteLine("Compiling: " + fullName);
                         c.CompileFile(dirFile);
                     }
                     catch (Exception ex)
