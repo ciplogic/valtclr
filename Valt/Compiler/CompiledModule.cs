@@ -1,5 +1,6 @@
 using System.IO;
 using Valt.Compiler.Declarations;
+using Valt.Compiler.Typing;
 
 namespace Valt.Compiler
 {
@@ -8,7 +9,7 @@ namespace Valt.Compiler
         public string Name = "main";
         private string _fileName;
 
-        public CompiledModule(ModuleDeclaration moduleDeclaration)
+        public CompiledModule(Module moduleDeclaration)
         {
             Module = moduleDeclaration;
         }
@@ -19,6 +20,11 @@ namespace Valt.Compiler
             set { _fileName = FileResolver.GetFullFileName(value); }
         }
 
-        public ModuleDeclaration Module { get; set; }
+        public Module Module { get; set; }
+
+        public void ResolveStructs(TypeResolver typeResolver)
+        {
+            Module.ResolveStructs(typeResolver);
+        }
     }
 }

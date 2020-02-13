@@ -3,27 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using Valt.Compiler.Declarations;
 using Valt.Compiler.Lex;
-using Valt.Compiler.Typing;
 
 namespace Valt.Compiler.PrePass
 {
     public static class FirstPassCompiler
     {
-        public static Module SetupDefinitions(List<PreModuleDeclaration> declarations, TypeResolver typeResolver)
+        public static Module SetupDefinitions(List<PreModuleDeclaration> declarations)
         {
             var result = new Module();
-            declarations = ExtractImportDeclarations(declarations, result, typeResolver);
-            declarations = ExtractStructDeclarations(declarations, result, typeResolver);
-            foreach (var moduleDeclaration in declarations)
-            {
-                
-            }
-
+            declarations = ExtractImportDeclarations(declarations, result);
+            declarations = ExtractStructDeclarations(declarations, result);
             return result;
         }
 
         private static List<PreModuleDeclaration> ExtractImportDeclarations(List<PreModuleDeclaration> declarations,
-            Module result, TypeResolver typeResolver)
+            Module result)
         {
             var splitOnImports = declarations
                 .FilterSplit(decl => decl.Type == ModuleDeclarationType.Import);
@@ -51,7 +45,6 @@ namespace Valt.Compiler.PrePass
                         Name = tokenRows[i][0].text
                     };
                     result.Imports.Add(item);
-                    continue;
                 }
 
             }
@@ -60,24 +53,22 @@ namespace Valt.Compiler.PrePass
         }
 
         private static List<PreModuleDeclaration> ExtractStructDeclarations(List<PreModuleDeclaration> declarations,
-            Module result, TypeResolver typeResolver)
+            Module result)
         {
             var splitOnStructs = declarations
                 .FilterSplit(decl => decl.Type == ModuleDeclarationType.Struct);
             declarations = splitOnStructs.notMatching;
-            var structs = new List<StructDeclaration>();
             foreach (var structDecl in splitOnStructs.matching)
             {
                 var strDef = StructDeclaration.DeclarationEvaluation(structDecl);
-                structs.Add(strDef);
+                result.Structs.Add(strDef);
             }
-
             splitOnStructs = declarations
                 .FilterSplit(decl => decl.Type == ModuleDeclarationType.Enum);
             foreach (var structDecl in splitOnStructs.matching)
             {
                 var enumDeclaration = EnumDeclaration.DeclarationEvaluation(structDecl);
-                result.Types.Add(enumDeclaration);
+                result.Enums.Add(enumDeclaration);
             }
             splitOnStructs = declarations
                 .FilterSplit(decl => decl.Type == ModuleDeclarationType.Module);
@@ -85,9 +76,6 @@ namespace Valt.Compiler.PrePass
             {
                 result.Name = structDecl.tokens[1].text;
             }
-            result.Types.AddRange(structs);
-            typeResolver.RegisterTypes(result.Name, ResolvedTypeKind.Struct, 
-                structs.ToArrayOfT<StructDeclaration, NamedDeclaration>());
 
             return splitOnStructs.notMatching;
         }

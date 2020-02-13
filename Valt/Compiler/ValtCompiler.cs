@@ -22,11 +22,13 @@ namespace Valt.Compiler
             var tokens = Lexer.Tokenize(content);
             var declarations = FirstPassCompiler.getTopLevelDeclarations(tokens.items);
  
-            var moduleDefs = FirstPassCompiler.SetupDefinitions(declarations, _typeResolver);
+            Module moduleDefs = FirstPassCompiler.SetupDefinitions(declarations);
             var compiledModule = new CompiledModule(moduleDefs);
             modules[fullFileName] = compiledModule;
 
             CompileImports(moduleDefs.ImportNames);
+
+            compiledModule.ResolveStructs(_typeResolver);
 
         }
 

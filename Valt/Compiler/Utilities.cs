@@ -32,6 +32,16 @@ namespace Valt.Compiler
             return (matching, notMatching);
         }
 
+        public static int IndexOf<T>(this IList<T> items, Func<T, bool> predicate)
+        {
+            for (var index = 0; index < items.Count; index++)
+            {
+                var item = items[index];
+                if (predicate(item))
+                    return index;
+            }
+            return -1;
+        }
         public static Token[][] SplitTokensByTokenType(this IEnumerable<Token> tokens, TokenType tokenType, bool removeEmptyItems = true)
         {
             var result = new List<Token[]>();

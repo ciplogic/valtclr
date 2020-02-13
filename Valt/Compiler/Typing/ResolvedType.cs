@@ -1,3 +1,4 @@
+using Microsoft.VisualBasic;
 using Valt.Compiler.Declarations;
 
 namespace Valt.Compiler.Typing
@@ -11,6 +12,8 @@ namespace Valt.Compiler.Typing
         public bool IsReference { get; set; }
         public NamedDeclaration DataRef { get; set; }
         public bool IsArray { get; set; }
+
+        public int FixedArrayLength { get; set; } = -1;
         public override string ToString()
         {
             if (DataRef != null)
