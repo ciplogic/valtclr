@@ -8,6 +8,11 @@ namespace Valt.Compiler
 {
     public static class Utilities
     {
+        public static TOut[] ToArrayOfT<TIn, TOut>(this IList<TIn> items) 
+            where TIn:TOut 
+        {
+            return items.Select(it => (TOut) it).ToArray();
+        }
         public static (List<T>matching, List<T>notMatching) FilterSplit<T>(this IEnumerable<T> items,
             Func<T, bool> filter)
         {

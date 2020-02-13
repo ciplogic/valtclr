@@ -18,7 +18,11 @@ namespace Valt.Compiler.Typing
         private void RegisterPrimitiveTypes()
         {
             
-            var reservedPrimitives = new []{"int"};
+            var reservedPrimitives = new []
+            {
+                "int", "bool", "string", "byteptr",
+                "u32", "i64", "u64"
+            };
             foreach (var primitive in reservedPrimitives)
             {
                 var resolvedType = new ResolvedType
@@ -32,7 +36,7 @@ namespace Valt.Compiler.Typing
             }
         }
 
-        public ResolvedType Resolve(List<Token> tokens)
+        public ResolvedType Resolve(List<Token> tokens, string packageName = "")
         {
             if (tokens.Count == 1)
             {
@@ -53,47 +57,21 @@ namespace Valt.Compiler.Typing
             return result;
         }
 
-        public void RegisterTypes(string moduleName, IEnumerable<string> types, ResolvedTypeKind kind,
+        public void RegisterTypes(string moduleName, ResolvedTypeKind kind,
             IList<NamedDeclaration> structs)
         {
-
-            var pos = 0;
-            foreach (var type in types)
+            if(structs.Count==0)
+                return;
+            foreach (var strDef in structs)
             {
-                var fullType = moduleName + "." + type;
-                ResolvedType item = new ResolvedType()
+                var fullType = moduleName.Length==0? strDef.Name : moduleName + "." + strDef.Name;
+                SolvedTypes[fullType] = new ResolvedType()
                 {
                     Name = fullType,
                     Kind = kind,
-                    DataRef = structs[pos]
+                    DataRef = strDef
                 };
-                SolvedTypes[fullType] = item;
-                pos++;
             }
-        }
-    }
-
-    public enum ResolvedTypeKind
-    {
-        Primitive,
-        Struct,
-        Enum,
-        Union
-    }
-
-    public class ResolvedType
-    {
-        public string Name;
-        public ResolvedTypeKind Kind { get; set; }
-        public ResolvedType ElementType { get; set; }
-        public bool IsPointer { get; set; }
-        public bool IsReference { get; set; }
-        public NamedDeclaration DataRef { get; set; }
-        public override string ToString()
-        {
-            if (DataRef != null)
-                return DataRef.ToString();
-            return Name + "(" + Kind + ")";
         }
     }
 }

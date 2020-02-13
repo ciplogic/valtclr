@@ -86,8 +86,8 @@ namespace Valt.Compiler.PrePass
                 result.Name = structDecl.tokens[1].text;
             }
             result.Types.AddRange(structs);
-            typeResolver.RegisterTypes(result.Name, structs.Select(s => s.Name), ResolvedTypeKind.Struct, 
-                structs.Select(i=>(NamedDeclaration)i).ToArray());
+            typeResolver.RegisterTypes(result.Name, ResolvedTypeKind.Struct, 
+                structs.ToArrayOfT<StructDeclaration, NamedDeclaration>());
 
             return splitOnStructs.notMatching;
         }
