@@ -19,7 +19,7 @@ namespace Valt.Compiler.Declarations
             var result = DeclarationModifiers.None;
             foreach (var token in tokens)
             {
-                switch (token.text)
+                switch (token.Text)
                 {
                     case "pub":
                         result |= DeclarationModifiers.Pub;

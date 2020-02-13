@@ -23,7 +23,7 @@ namespace Valt.Compiler.PrePass
                 .FilterSplit(decl => decl.Type == ModuleDeclarationType.Import);
             foreach (var importDeclaration in splitOnImports.matching)
             {
-                var tokenRows = importDeclaration.tokens
+                var tokenRows = importDeclaration.Tokens
                     .SplitTokensByTokenType(TokenType.Eoln)
                     .Where(row=>row.Length>0)
                     .ToArray();
@@ -32,7 +32,7 @@ namespace Valt.Compiler.PrePass
                     //when importing just one item
                     var item = new ImportDeclaration
                     {
-                        Name = tokenRows[0][1].text
+                        Name = tokenRows[0][1].Text
                     };
                     result.Imports.Add(item);
                     continue;
@@ -42,7 +42,7 @@ namespace Valt.Compiler.PrePass
                 {
                     var item = new ImportDeclaration
                     {
-                        Name = tokenRows[i][0].text
+                        Name = tokenRows[i][0].Text
                     };
                     result.Imports.Add(item);
                 }
@@ -74,7 +74,7 @@ namespace Valt.Compiler.PrePass
                 .FilterSplit(decl => decl.Type == ModuleDeclarationType.Module);
             foreach (var structDecl in splitOnStructs.matching)
             {
-                result.Name = structDecl.tokens[1].text;
+                result.Name = structDecl.Tokens[1].Text;
             }
 
             return splitOnStructs.notMatching;
@@ -83,7 +83,7 @@ namespace Valt.Compiler.PrePass
 
         static int MatchRange(List<Token> tokens, int pos, string tokenText, Func<Token, bool> matchToken)
         {
-            if (tokens[pos].text != tokenText)
+            if (tokens[pos].Text != tokenText)
                 return 0;
             for (var i = pos + 1; i < tokens.Count; i++)
             {
@@ -96,19 +96,19 @@ namespace Valt.Compiler.PrePass
 
         static int MatchRange(List<Token> tokens, int pos, string tokenText, TokenType tokenType)
         {
-            return MatchRange(tokens, pos, tokenText, tok => tok.type == tokenType);
+            return MatchRange(tokens, pos, tokenText, tok => tok.Type == tokenType);
         }
 
         static int MatchParenPos(List<Token> tokens, int start, string openParen, string closeParen)
         {
-            if (tokens[start].text != openParen)
+            if (tokens[start].Text != openParen)
                 return -1;
             var openParens = 1;
             for (var i = start + 1; i < tokens.Count; i++)
             {
-                if (tokens[i].text == openParen)
+                if (tokens[i].Text == openParen)
                     openParens++;
-                if (tokens[i].text == closeParen)
+                if (tokens[i].Text == closeParen)
                     openParens--;
                 if (openParens == 0)
                     return i;
@@ -127,13 +127,13 @@ namespace Valt.Compiler.PrePass
                 moduleTokens.Add(tokens[pos + i]);
             }
 
-            moduleDeclaration.tokens = moduleTokens.ToArray();
-            moduleDeclaration.modifiers = modifiers;
+            moduleDeclaration.Tokens = moduleTokens.ToArray();
+            moduleDeclaration.Modifiers = modifiers;
         }
 
         static bool IsSpaceToken(Token token)
         {
-            switch (token.type)
+            switch (token.Type)
             {
                 case TokenType.Comment:
                 case TokenType.Spaces:
@@ -167,7 +167,7 @@ namespace Valt.Compiler.PrePass
             if (matchLen == 0)
                 return 0;
             var lastToken = matchLen + pos - 2;
-            while (tokens[lastToken].text == "|")
+            while (tokens[lastToken].Text == "|")
             {
                 var lastTokenLocal = MatchTokenWithType(tokens, lastToken + 2, TokenType.Eoln);
                 lastToken = lastTokenLocal - 1;
@@ -187,7 +187,7 @@ namespace Valt.Compiler.PrePass
 
         static int MatchPragma(List<Token> tokens, int pos)
         {
-            switch (tokens[pos].type)
+            switch (tokens[pos].Type)
             {
                 case TokenType.SharpPragmaOrInclude:
                     return 1;
@@ -202,7 +202,7 @@ namespace Valt.Compiler.PrePass
             var matchLen = MatchRange(tokens, pos, keyword, TokenType.Eoln);
             if (matchLen == 0)
                 return 0;
-            var text = tokens[pos + matchLen - 2].text;
+            var text = tokens[pos + matchLen - 2].Text;
             if (text == openParen)
             {
                 var matchParenLen = MatchParenPos(tokens, pos + matchLen - 2, openParen, closeParen);
@@ -234,14 +234,14 @@ namespace Valt.Compiler.PrePass
         static int MatchTokenWithType(List<Token> tokens, int pos, TokenType tokenType)
         {
             for(var i =pos; i<tokens.Count; i++)
-                if (tokens[i].type == tokenType)
+                if (tokens[i].Type == tokenType)
                     return i;
             return -1;
         }
         static int MatchTokenWithText(List<Token> tokens, int pos, string text)
         {
             for(var i =pos; i<tokens.Count; i++)
-                if (tokens[i].text == text)
+                if (tokens[i].Text == text)
                     return i;
             return -1;
         }
@@ -249,7 +249,7 @@ namespace Valt.Compiler.PrePass
         static int MatchDeclarationWithBlock(List<Token> tokens, int pos, string startText, string openParen, string closeParen)
         {
             
-            if (tokens[pos].text != startText)
+            if (tokens[pos].Text != startText)
                 return 0;
             var openCurly = MatchTokenWithText(tokens, pos + 1, openParen);
             var closeParenPos = MatchParenPos(tokens, openCurly, openParen, closeParen);
@@ -268,7 +268,7 @@ namespace Valt.Compiler.PrePass
         
         
 
-        private static (ModuleDeclarationType, Func<List<Token>, int, int>)[] ParseMatchersVec =
+        private static (ModuleDeclarationType, Func<List<Token>, int, int>)[] _parseMatchersVec =
         {
             (ModuleDeclarationType.Spaces, MatchSpaces),
             (ModuleDeclarationType.Module, MatchModule),
@@ -289,7 +289,7 @@ namespace Valt.Compiler.PrePass
         {
             for (var i = pos; i < tokens.Count; i++)
             {
-                if (tokens[i].type != TokenType.Eoln)
+                if (tokens[i].Type != TokenType.Eoln)
                 {
                     return i;
                 }
@@ -298,7 +298,7 @@ namespace Valt.Compiler.PrePass
             return tokens.Count;
         }
 
-        public static List<PreModuleDeclaration> getTopLevelDeclarations(List<Token> tokens)
+        public static List<PreModuleDeclaration> GetTopLevelDeclarations(List<Token> tokens)
         {
             var result = new List<PreModuleDeclaration>();
 
@@ -312,7 +312,7 @@ namespace Valt.Compiler.PrePass
                 {
                     break;
                 }
-                foreach (var rule in ParseMatchersVec)
+                foreach (var rule in _parseMatchersVec)
                 {
                     var matchLen = rule.Item2(tokens, pos);
                     if (matchLen == 0)
@@ -328,7 +328,7 @@ namespace Valt.Compiler.PrePass
 
                 if (!found)
                 {
-                    var message = "Cannot find rule at: " + tokens[pos].text;
+                    var message = "Cannot find rule at: " + tokens[pos].Text;
                     Console.WriteLine(message);
                     throw new Exception(message);
                 }
@@ -345,7 +345,7 @@ namespace Valt.Compiler.PrePass
             {
                 return (Array.Empty<Token>(), startPos);
             }
-            if (tokens[startPos].text == "[")
+            if (tokens[startPos].Text == "[")
             {
                 var endPos = MatchParenPos(tokens, startPos, "[", "]");
                 for (var i = startPos; i <= endPos; i++)
@@ -358,7 +358,7 @@ namespace Valt.Compiler.PrePass
             while (true)
             {
                 var found = false;
-                switch (tokens[startPos].text)
+                switch (tokens[startPos].Text)
                 {
                     case "pub":
                     case "mut":
@@ -366,7 +366,7 @@ namespace Valt.Compiler.PrePass
                         break;
                 }
 
-                switch (tokens[startPos].type)
+                switch (tokens[startPos].Type)
                 {
                     case TokenType.Eoln:
                         found = true;

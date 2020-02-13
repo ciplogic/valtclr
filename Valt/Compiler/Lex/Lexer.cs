@@ -25,7 +25,7 @@ namespace Valt.Compiler.Lex
             return MatchAll(text, start + 1, charMatcher) + 1;
         }
 
-        static int matchAllStart(string text, int pos, string startText, string endText)
+        static int MatchAllStart(string text, int pos, string startText, string endText)
         {
             if (text[pos] != startText[0])
             {
@@ -50,33 +50,58 @@ namespace Valt.Compiler.Lex
             return 0;
         }
 
-        static bool isAlpha(char ch)
+        static bool IsAlpha(char ch)
         {
             return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch == '_')  || (ch == '@');
         }
 
-        static bool isNum(char ch)
+        static bool IsNum(char ch)
         {
             return (ch >= '0' && ch <= '9');
         }
 
         static bool IsAlphaNum(char ch)
         {
-            return isAlpha(ch) || isNum(ch);
+            return IsAlpha(ch) || IsNum(ch);
         }
 
+        static int MatchFloatNumbers(string text, int pos)
+        {
+            var matchInt = MatchNumbers(text, pos);
+            if (matchInt == 0)
+                return 0;
+            if (pos + matchInt == text.Length)
+                return matchInt;
+            if (text[pos + matchInt] != '.')
+                return matchInt;
+            var matchMantissa = MatchNumbers(text,  pos + matchInt + 1);
+            if (matchMantissa == 0)
+                return matchInt;
+            var expectedLen = matchInt + matchMantissa + 1;
+            if (pos + expectedLen == text.Length)
+                return expectedLen;
+            var potentialExponent = text[pos + expectedLen];
+            //var subText = text.Substring(pos);
+            if (potentialExponent != 'e' && potentialExponent != 'E')
+                return expectedLen;
+            if (text[pos + expectedLen + 1] == '-')
+                expectedLen++;
+            expectedLen += MatchNumbers(text, pos + expectedLen);
+
+            return expectedLen;
+        }
 
         static int MatchNumbers(string text, int pos)
         {
-            return MatchAll(text, pos, isNum);
+            return MatchAll(text, pos, IsNum);
         }
 
-        static int matchIdentifier(string text, int pos)
+        static int MatchIdentifier(string text, int pos)
         {
-            return MatchAllStart(text, pos, isAlpha, IsAlphaNum);
+            return MatchAllStart(text, pos, IsAlpha, IsAlphaNum);
         }
 
-        static string[] ReservedWords =
+        static string[] _reservedWords =
         {
             "break", "const", "continue",
             "defer", "else", "enum", "fn",
@@ -100,12 +125,12 @@ namespace Valt.Compiler.Lex
             "__global"
         };
 
-        static int matchReserved(string text, int pos)
+        static int MatchReserved(string text, int pos)
         {
-            var matchId = matchIdentifier(text, pos);
+            var matchId = MatchIdentifier(text, pos);
             if (matchId == 0)
                 return 0;
-            foreach (var rw in ReservedWords)
+            foreach (var rw in _reservedWords)
             {
                 if (rw.Length != matchId)
                     continue;
@@ -118,11 +143,11 @@ namespace Valt.Compiler.Lex
             return 0;
         }
 
-        static int matchComment(string text, int pos)
+        static int MatchComment(string text, int pos)
         {
-            var len = matchAllStart(text, pos, "//", "\n");
+            var len = MatchAllStart(text, pos, "//", "\n");
             if (len != 0) return len-1;
-            len = matchAllStart(text, pos, "/*", "*/");
+            len = MatchAllStart(text, pos, "/*", "*/");
             if (len == 0)
                 return 0;
             var openComment = 1;
@@ -140,7 +165,7 @@ namespace Valt.Compiler.Lex
             return 0;
         }
 
-        static int matchQuote(string text, int pos)
+        static int MatchQuote(string text, int pos)
         {
             switch (text[pos])
             {
@@ -176,12 +201,12 @@ namespace Valt.Compiler.Lex
         {
             if (text[pos] != '$')
                 return 0;
-            return 1 + matchIdentifier(text, pos + 1);
+            return 1 + MatchIdentifier(text, pos + 1);
         }
 
         static int MatchPragmas(string text, int pos)
         {
-            return matchAllStart(text, pos, "#", "\n");
+            return MatchAllStart(text, pos, "#", "\n");
         }
 
         static bool IsSpace(char ch)
@@ -201,7 +226,7 @@ namespace Valt.Compiler.Lex
             return MatchAll(text, pos, IsSpace);
         }
 
-        static string[] operators =
+        static string[] _operators =
         {
             "(", ")",
             "...", "..", ".",
@@ -222,9 +247,9 @@ namespace Valt.Compiler.Lex
             "[", "]", "{", "}",
             ",", "^"
         };
-        static int matchOperators(string text, int pos)
+        static int MatchOperators(string text, int pos)
         {
-            foreach (var op in operators)
+            foreach (var op in _operators)
             {
                 if (op[0] != text[pos])
                     continue;
@@ -241,26 +266,27 @@ namespace Valt.Compiler.Lex
             return ch == '\n' || ch == '\r';
         }
 
-        static int matchEoln(string text, int pos)
+        static int MatchEoln(string text, int pos)
         {
             return MatchAll(text, pos, IsEoln);
         }
 
-        static (TokenType, Func<string, int, int>)[] matchers =
+        static (TokenType, Func<string, int, int>)[] _matchers =
         {
-            (TokenType.Comment, matchComment),
-            (TokenType.Operator, matchOperators),
-            (TokenType.Reserved, matchReserved),
-            (TokenType.Identifier, matchIdentifier),
-            (TokenType.Eoln, matchEoln),
+            (TokenType.Comment, MatchComment),
+            (TokenType.Operator, MatchOperators),
+            (TokenType.Reserved, MatchReserved),
+            (TokenType.Identifier, MatchIdentifier),
+            (TokenType.Eoln, MatchEoln),
             (TokenType.Spaces, MatchSpaces),
-            (TokenType.Quote, matchQuote),
+            (TokenType.Quote, MatchQuote),
             (TokenType.Directive, MatchDirective),
             (TokenType.SharpPragmaOrInclude, MatchPragmas),
+            (TokenType.Number, MatchFloatNumbers),
             (TokenType.Number, MatchNumbers),
         };
 
-        static string reducedMessage(string text, int pos)
+        static string ReducedMessage(string text, int pos)
         {
             var remainder = text.Substring(pos);
             var posEoln = remainder.IndexOf('\n');
@@ -272,7 +298,7 @@ namespace Valt.Compiler.Lex
             return remainder;
         }
 
-        static bool isSpaceToken(TokenType tokenType)
+        static bool IsSpaceToken(TokenType tokenType)
         {
             switch (tokenType)
             {
@@ -288,7 +314,7 @@ namespace Valt.Compiler.Lex
         {
             var resultTokens = new List<Token>(text.Length>>2);
 
-            var tokenMatchers = matchers;
+            var tokenMatchers = _matchers;
             var pos = 0;
             while (pos < text.Length)
             {
@@ -299,14 +325,14 @@ namespace Valt.Compiler.Lex
                     if (matchLen == 0)
                         continue;
                     found = true;
-                    if (isSpaceToken(matcher.Item1))
+                    if (IsSpaceToken(matcher.Item1))
                     {
                         pos += matchLen;
                         break;
                     }
                     var foundText = text.Substring(pos, matchLen);
                     pos += matchLen;
-                    var token = new Token() {text = foundText, type = matcher.Item1};
+                    var token = new Token() {Text = foundText, Type = matcher.Item1};
                     //Console.WriteLine("Found:"+token);
                     resultTokens.Add(token);
                     break;
@@ -314,7 +340,7 @@ namespace Valt.Compiler.Lex
 
                 if (!found)
                 {
-                    var msg = reducedMessage(text, pos);
+                    var msg = ReducedMessage(text, pos);
                     var countTokensToSkip = resultTokens.Count - 5;
                     var lastTokens = resultTokens.Skip(countTokensToSkip).ToArray();
                     Console.WriteLine("Last tokens");

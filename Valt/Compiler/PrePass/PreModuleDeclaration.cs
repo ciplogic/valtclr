@@ -6,12 +6,12 @@ namespace Valt.Compiler.PrePass
     public class PreModuleDeclaration
     {
         public ModuleDeclarationType Type;
-        public Token[] modifiers;
-        public Token[] tokens;
+        public Token[] Modifiers;
+        public Token[] Tokens;
         public override string ToString()
         {
-            var modifiersText = string.Join(" ",modifiers.Select(m => m.text));
-            var tokensText = string.Join(" ", tokens.Select(m => m.text));
+            var modifiersText = string.Join(" ",Modifiers.Select(m => m.Text));
+            var tokensText = string.Join(" ", Tokens.Select(m => m.Text));
             return string.Join(" ",
                 $"{modifiersText} {tokensText}- ({Type})");
         }

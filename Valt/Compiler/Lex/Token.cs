@@ -2,15 +2,15 @@ namespace Valt.Compiler.Lex
 {
     public struct Token
     {
-        public string text;
-        public TokenType type;
+        public string Text;
+        public TokenType Type;
         public override string ToString()
         {
-            if (type == TokenType.Eoln)
+            if (Type == TokenType.Eoln)
             {
-                return $"'' ({type})";
+                return $"'' ({Type})";
             }
-            return $"'{text}' ({type})";
+            return $"'{Text}' ({Type})";
         }
     }
 }

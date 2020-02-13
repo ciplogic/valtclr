@@ -10,10 +10,10 @@ namespace Valt.Compiler.Declarations
 
         public static EnumDeclaration DeclarationEvaluation(PreModuleDeclaration structDecl)
         {
-            var tokenRows = structDecl.tokens.SplitTokensByTokenType(TokenType.Eoln);
+            var tokenRows = structDecl.Tokens.SplitTokensByTokenType(TokenType.Eoln);
             var strDef = new EnumDeclaration
             {
-                Name = tokenRows[0][1].text
+                Name = tokenRows[0][1].Text
             };  
             for (var i = 1; i < tokenRows.Length - 1; i++)
             {
@@ -21,7 +21,7 @@ namespace Valt.Compiler.Declarations
                 if (currRow.Length == 0)
                     continue;
                 
-                strDef.Values.Add(currRow[0].text);
+                strDef.Values.Add(currRow[0].Text);
             }
             return strDef;
         }

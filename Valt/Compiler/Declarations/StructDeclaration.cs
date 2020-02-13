@@ -20,12 +20,12 @@ namespace Valt.Compiler.Declarations
 
         public static StructDeclaration DeclarationEvaluation(PreModuleDeclaration structDecl)
         {
-            var tokenRows = structDecl.tokens.SplitTokensByTokenType(TokenType.Eoln);
-            var strDefName = tokenRows[0][1].text;
+            var tokenRows = structDecl.Tokens.SplitTokensByTokenType(TokenType.Eoln);
+            var strDefName = tokenRows[0][1].Text;
             var strDef = new StructDeclaration();
             if (strDefName == "C")
             {
-                strDef.Name = tokenRows[0][3].text;
+                strDef.Name = tokenRows[0][3].Text;
                 strDef.IsC = true;
             }
             else
@@ -40,7 +40,7 @@ namespace Valt.Compiler.Declarations
                 if (currRow.Length == 0)
                     continue;
 
-                if (currRow[^1].text == ":")
+                if (currRow[^1].Text == ":")
                 {
                     modifiers = DeclarationModifierUtilities.Parse(currRow);
                     continue;
@@ -48,7 +48,7 @@ namespace Valt.Compiler.Declarations
                 
                 var field = new StructField
                 {
-                    Name = currRow[0].text, 
+                    Name = currRow[0].Text, 
                     TypeTokens = currRow.Skip(1).ToArray(),
                     Modifiers = modifiers
                 };

@@ -10,7 +10,7 @@ namespace Valt.Compiler.Typing
     public class TypeResolver
     {
         private Dictionary<string, ResolvedType> SolvedTypes { get; } = new Dictionary<string, ResolvedType>();
-        CompiledModule ParentPrimitives = new CompiledModule(null){Name = "vroot"};
+        CompiledModule _parentPrimitives = new CompiledModule(null){Name = "vroot"};
 
         public TypeResolver()
         {
@@ -58,7 +58,7 @@ namespace Valt.Compiler.Typing
         {
             if (tokens.Count == 0)
                 return null;
-            var firstTokenText = tokens[0].text;
+            var firstTokenText = tokens[0].Text;
             if (tokens.Count == 1)
             {
                 var resolvePrimitive = ResolvePrimitive(firstTokenText);
@@ -74,12 +74,30 @@ namespace Valt.Compiler.Typing
             {
                 return ResolveReference(tokens.Skip(1).ToArray(), packageName);
             }
-            if (firstTokenText == "[" && tokens[1].text == "]")
+            if (firstTokenText == "[") 
             {
-                return ResolveArray(tokens.Skip(2).ToArray(), packageName);
+                if (tokens[1].Text == "]")
+                {
+                    return ResolveArray(tokens.Skip(2).ToArray(), packageName);
+                }
+                if (tokens[1].Type == TokenType.Number)
+                {
+                    return ResolveFixedArray(tokens.Skip(3).ToArray(), packageName, int.Parse(tokens[1].Text));
+                }
             }
-            Console.WriteLine("Cannot resolve: "+ string.Join("", tokens.Select(t=>t.text)));
+            Console.WriteLine("Cannot resolve: "+ string.Join("", tokens.Select(t=>t.Text)));
             throw new Exception("Unhandled");
+        }
+
+        private ResolvedType ResolveFixedArray(Token[] toArray, string packageName, int sizeArray)
+        {
+            var result = new ResolvedType()
+            {
+                IsArray = true,
+                FixedArrayLength = sizeArray,
+                ElementType = Resolve(toArray, packageName)
+            };
+            return result;
         }
 
         private ResolvedType ResolveArray(Token[] toArray, string packageName)

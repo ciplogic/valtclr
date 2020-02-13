@@ -10,21 +10,21 @@ namespace Valt.Compiler
 {
     public class ValtCompiler
     {
-        Dictionary<string, CompiledModule> modules = new Dictionary<string, CompiledModule>();
+        Dictionary<string, CompiledModule> _modules = new Dictionary<string, CompiledModule>();
         public FileResolver FileResolver { get; } = new FileResolver();
         TypeResolver _typeResolver = new TypeResolver();
         public void CompileFile(string fileName)
         {
             var fullFileName = FileResolver.GetFullFileName(fileName);
-            if (modules.ContainsKey(fullFileName))
+            if (_modules.ContainsKey(fullFileName))
                 return;
             var content = File.ReadAllText(fullFileName);
             var tokens = Lexer.Tokenize(content);
-            var declarations = FirstPassCompiler.getTopLevelDeclarations(tokens.items);
+            var declarations = FirstPassCompiler.GetTopLevelDeclarations(tokens.items);
  
             Module moduleDefs = FirstPassCompiler.SetupDefinitions(declarations);
             var compiledModule = new CompiledModule(moduleDefs);
-            modules[fullFileName] = compiledModule;
+            _modules[fullFileName] = compiledModule;
 
             CompileImports(moduleDefs.ImportNames);
 

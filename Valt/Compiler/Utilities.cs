@@ -48,7 +48,7 @@ namespace Valt.Compiler
             var currentRow = new List<Token>();
             foreach (var token in tokens)
             {
-                if (token.type!=tokenType)
+                if (token.Type!=tokenType)
                     currentRow.Add(token);
                 else
                 {

@@ -15,7 +15,7 @@ namespace Valt.Compiler.Declarations
             get => _typeTokens;
             set
             {
-                var containsEquals = value.IndexOf(t => t.text == "=");
+                var containsEquals = value.IndexOf(t => t.Text == "=");
                 if (containsEquals!=-1)
                 {
                     _typeTokens = value.Take(containsEquals).ToArray();
@@ -35,7 +35,7 @@ namespace Valt.Compiler.Declarations
 
         public override string ToString()
         {
-            return Name + ": " + string.Join("", TypeTokens.Select(it=>it.text));
+            return Name + ": " + string.Join("", TypeTokens.Select(it=>it.Text));
         }
     }
 }
