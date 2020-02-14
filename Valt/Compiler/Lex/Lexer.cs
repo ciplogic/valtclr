@@ -65,6 +65,25 @@ namespace Valt.Compiler.Lex
             return IsAlpha(ch) || IsNum(ch);
         }
 
+        static int MatchHexNumbers(string text, int pos)
+        {
+            if (text[pos] != '0')
+                return 0;
+            if (pos + 2 > text.Length)
+                return 0;
+            if (text[pos + 1] != 'x')
+                return 0;
+            for (var i = pos + 2; i < text.Length; i++)
+            {
+                var ch = text[i];
+                var isHex = Char.IsDigit(ch) || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F');
+                if (!isHex)
+                    return i - pos;
+            }
+
+            return text.Length - pos;
+        }
+
         static int MatchFloatNumbers(string text, int pos)
         {
             var matchInt = MatchNumbers(text, pos);
@@ -282,6 +301,7 @@ namespace Valt.Compiler.Lex
             (TokenType.Quote, MatchQuote),
             (TokenType.Directive, MatchDirective),
             (TokenType.SharpPragmaOrInclude, MatchPragmas),
+            (TokenType.Number, MatchHexNumbers),
             (TokenType.Number, MatchFloatNumbers),
             (TokenType.Number, MatchNumbers),
         };

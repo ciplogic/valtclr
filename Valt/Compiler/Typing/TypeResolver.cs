@@ -22,7 +22,7 @@ namespace Valt.Compiler.Typing
 
             var reservedPrimitives = new[]
             {
-                "int", "bool", "string", "byte",
+                "int", "bool", "string", "byte", "char",
                 "u32", "i64", "u64", "f32", "u16", "i16"
             };
             foreach (var primitive in reservedPrimitives)
@@ -70,30 +70,43 @@ namespace Valt.Compiler.Typing
                 Debug.Assert(false);
             }
 
-            if (firstTokenText == "&")
+            switch (firstTokenText)
             {
-                return ResolveReference(tokens.Skip(1).ToArray(), packageName);
-            }
-            if (firstTokenText == "[") 
-            {
-                if (tokens[1].Text == "]")
-                {
+                case "&":
+                    return ResolveReference(tokens.Skip(1).ToArray(), packageName);
+                case "[" when tokens[1].Text == "]":
                     return ResolveArray(tokens.Skip(2).ToArray(), packageName);
-                }
-                if (tokens[1].Type == TokenType.Number)
-                {
+                case "[" when tokens[1].Type == TokenType.Number:
                     return ResolveFixedArray(tokens.Skip(3).ToArray(), packageName, int.Parse(tokens[1].Text));
-                }
+                case "C" when tokens[1].Text == ".":
+                    return ResolveAsCType(tokens);
+                case "map" when tokens[1].Text == "[":
+                    return ResolveMap(tokens, packageName);
+                default:
+                    Console.WriteLine("Cannot resolve: "+ string.Join("", tokens.Select(t=>t.Text)));
+                    throw new Exception("Unhandled");
             }
-            Console.WriteLine("Cannot resolve: "+ string.Join("", tokens.Select(t=>t.Text)));
-            throw new Exception("Unhandled");
+        }
+
+        private static ResolvedType ResolveAsCType(IList<Token> tokens)
+        {
+            return new ResolvedType()
+            {
+                Name = "C." + tokens[2].Text,
+                InternalType = ValtInternalType.CType
+            };
+        }
+
+        private ResolvedType ResolveMap(IList<Token> tokens, string packageName)
+        {
+            throw new NotImplementedException();
         }
 
         private ResolvedType ResolveFixedArray(Token[] toArray, string packageName, int sizeArray)
         {
             var result = new ResolvedType()
             {
-                IsArray = true,
+                InternalType = ValtInternalType.Array,
                 FixedArrayLength = sizeArray,
                 ElementType = Resolve(toArray, packageName)
             };
@@ -104,7 +117,7 @@ namespace Valt.Compiler.Typing
         {
             var result = new ResolvedType()
             {
-                IsArray = true,
+                InternalType = ValtInternalType.Array,
                 ElementType = Resolve(toArray, packageName)
             };
             return result;

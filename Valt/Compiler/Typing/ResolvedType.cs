@@ -3,6 +3,15 @@ using Valt.Compiler.Declarations;
 
 namespace Valt.Compiler.Typing
 {
+    public enum ValtInternalType
+    {
+        Primitive = 0,
+        CType,
+        Array,
+        Struct,
+        Enum,
+        Map
+    }
     public class ResolvedType
     {
         public string Name;
@@ -11,9 +20,10 @@ namespace Valt.Compiler.Typing
         public bool IsPointer { get; set; }
         public bool IsReference { get; set; }
         public NamedDeclaration DataRef { get; set; }
-        public bool IsArray { get; set; }
 
         public int FixedArrayLength { get; set; } = -1;
+
+        public ValtInternalType InternalType { get; set; }
         public override string ToString()
         {
             if (DataRef != null)
@@ -27,9 +37,9 @@ namespace Valt.Compiler.Typing
             {
                 formatData = "&";
             }
-            if (IsArray)
+            if (InternalType==ValtInternalType.Array)
             {
-                formatData = "&";
+                formatData = "[]";
             }
             return $"{Kind} {formatData}{Name}";
         }

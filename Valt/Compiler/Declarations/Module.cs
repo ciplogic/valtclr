@@ -21,8 +21,8 @@ namespace Valt.Compiler.Declarations
         
         public void ResolveStructs(TypeResolver resolver)
         {
-            resolver.RegisterTypes(Name, ResolvedTypeKind.Struct, Structs.ToArrayOfT<StructDeclaration, NamedDeclaration>());
             resolver.RegisterTypes(Name, ResolvedTypeKind.Enum, Enums.ToArrayOfT<EnumDeclaration, NamedDeclaration>());
+            resolver.RegisterTypes(Name, ResolvedTypeKind.Struct, Structs.ToArrayOfT<StructDeclaration, NamedDeclaration>());
             
             var currentModuleName = Name;
             foreach (var structDeclaration in Structs)
