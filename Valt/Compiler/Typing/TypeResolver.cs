@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using Valt.Compiler.Declarations;
 using Valt.Compiler.Lex;
+using Valt.Compiler.PrePass;
 
 namespace Valt.Compiler.Typing
 {
@@ -67,7 +68,7 @@ namespace Valt.Compiler.Typing
                 resolvePrimitive = ResolveTypeInPackage(firstTokenText, packageName);
                 if (resolvePrimitive != null)
                     return resolvePrimitive;
-                Debug.Assert(false);
+                //Debug.Assert(false);
             }
 
             switch (firstTokenText)
@@ -99,7 +100,16 @@ namespace Valt.Compiler.Typing
 
         private ResolvedType ResolveMap(IList<Token> tokens, string packageName)
         {
-            throw new NotImplementedException();
+            var range = FirstPassCompiler.MatchParenPos(tokens, 1, "[", "]");
+            var keyType = tokens.Skip(2).Take(range-2).ToArray();
+            var valueType = tokens.Skip(1 + range).ToArray();
+            var result = new ResolvedType()
+            {
+                Kind = ResolvedTypeKind.Map,
+                ElementType = Resolve(keyType, packageName),
+                ValueType = Resolve(valueType, packageName)
+            };
+            return result;
         }
 
         private ResolvedType ResolveFixedArray(Token[] toArray, string packageName, int sizeArray)

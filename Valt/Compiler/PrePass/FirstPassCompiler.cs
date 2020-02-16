@@ -99,7 +99,7 @@ namespace Valt.Compiler.PrePass
             return MatchRange(tokens, pos, tokenText, tok => tok.Type == tokenType);
         }
 
-        static int MatchParenPos(List<Token> tokens, int start, string openParen, string closeParen)
+        public static int MatchParenPos(IList<Token> tokens, int start, string openParen, string closeParen)
         {
             if (tokens[start].Text != openParen)
                 return -1;

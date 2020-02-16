@@ -5,6 +5,7 @@ namespace Valt.Compiler.Typing
         Primitive,
         Struct,
         Enum,
-        Union
+        Union,
+        Map
     }
 }

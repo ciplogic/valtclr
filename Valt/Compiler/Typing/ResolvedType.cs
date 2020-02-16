@@ -17,6 +17,7 @@ namespace Valt.Compiler.Typing
         public string Name;
         public ResolvedTypeKind Kind { get; set; }
         public ResolvedType ElementType { get; set; }
+        public ResolvedType ValueType { get; set; }
         public bool IsPointer { get; set; }
         public bool IsReference { get; set; }
         public NamedDeclaration DataRef { get; set; }
