@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Valt.Compiler.Declarations;
 using Valt.Compiler.Lex;
@@ -11,7 +10,6 @@ namespace Valt.Compiler.Typing
     public class TypeResolver
     {
         private Dictionary<string, ResolvedType> SolvedTypes { get; } = new Dictionary<string, ResolvedType>();
-        CompiledModule _parentPrimitives = new CompiledModule(null){Name = "vroot"};
 
         public TypeResolver()
         {
@@ -24,7 +22,7 @@ namespace Valt.Compiler.Typing
             var reservedPrimitives = new[]
             {
                 "int", "bool", "string", "byte", "char",
-                "u32", "i64", "u64", "f32", "u16", "i16"
+                "u32", "i64", "u64", "f32", "f64", "u16", "i16"
             };
             foreach (var primitive in reservedPrimitives)
             {
@@ -112,7 +110,7 @@ namespace Valt.Compiler.Typing
             return result;
         }
 
-        private ResolvedType ResolveFixedArray(Token[] toArray, string packageName, int sizeArray)
+        private ResolvedType ResolveFixedArray(IList<Token> toArray, string packageName, int sizeArray)
         {
             var result = new ResolvedType()
             {
