@@ -9,16 +9,18 @@ namespace Valt.Compiler.Declarations
     public class Module : NamedDeclaration
     {
         public List<ModuleDeclaration> Items { get; } = new List<ModuleDeclaration>();
+        public List<EnumDeclaration> Enums { get; } = new List<EnumDeclaration>();
         public List<StructDeclaration> Structs { get; } = new List<StructDeclaration>();
         public List<ImportDeclaration> Imports { get; } = new List<ImportDeclaration>();
+
+        public List<FunctionDeclaration> Functions { get; } = new List<FunctionDeclaration>();
+
 
         public string[] ImportNames
         {
             get => Imports.Select(it => it.Name).ToArray();
         }
 
-        public List<EnumDeclaration> Enums { get; } = new List<EnumDeclaration>();
-        
         public void ResolveStructs(TypeResolver resolver)
         {
             resolver.RegisterTypes(Name, ResolvedTypeKind.Enum, Enums.ToArrayOfT<EnumDeclaration, NamedDeclaration>());
@@ -37,9 +39,5 @@ namespace Valt.Compiler.Declarations
             }
             
         }
-    }
-
-    public class ModuleDeclaration
-    {
     }
 }

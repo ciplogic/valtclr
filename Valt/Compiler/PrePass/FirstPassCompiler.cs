@@ -70,6 +70,7 @@ namespace Valt.Compiler.PrePass
                 var enumDeclaration = EnumDeclaration.DeclarationEvaluation(structDecl);
                 result.Enums.Add(enumDeclaration);
             }
+            declarations = splitOnStructs.notMatching;
             splitOnStructs = declarations
                 .FilterSplit(decl => decl.Type == ModuleDeclarationType.Module);
             foreach (var structDecl in splitOnStructs.matching)
@@ -77,6 +78,15 @@ namespace Valt.Compiler.PrePass
                 result.Name = structDecl.Tokens[1].Text;
             }
 
+            declarations = splitOnStructs.notMatching;
+            splitOnStructs = declarations
+                .FilterSplit(decl => decl.Type == ModuleDeclarationType.Function);
+            foreach (var structDecl in splitOnStructs.matching)
+            {
+                FunctionDeclaration enumDeclaration = FunctionDeclaration.DeclarationEvaluation(structDecl);
+                result.Functions.Add(enumDeclaration);
+            }
+            declarations = splitOnStructs.notMatching;
             return splitOnStructs.notMatching;
         }
 
