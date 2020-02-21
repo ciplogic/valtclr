@@ -6,7 +6,6 @@ namespace Valt.Compiler.Lex
 {
     public class Lexer
     {
-
         static int MatchAll(string text, int start, Func<char, bool> charMatcher)
         {
             for (var i = start; i < text.Length; i++)
