@@ -19,7 +19,7 @@ namespace Valt
             CompileFile();
             TimeIt("Built in", () =>
             {
-                var dirFiles = Directory.GetFiles("v-master/", "*.v", SearchOption.AllDirectories);
+                var dirFiles = Directory.GetFiles("JavaPort/v-master/", "*.v", SearchOption.AllDirectories);
                 foreach (var dirFile in dirFiles)
                 {
                     try
@@ -41,7 +41,7 @@ namespace Valt
         private static void CompileFile()
         {           
             var c = new ValtCompiler();
-            c.CompileFile("v-master/vlib/v/gen/tests/4.vv");
+            c.CompileFile("JavaPort/v-master/vlib/v/gen/tests/4.vv");
         }
     }
 }
