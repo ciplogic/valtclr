@@ -12,4 +12,4 @@ enum class TokenType{
     SharpPragmaOrInclude,
     Directive,
 }
-data class Token(val text: String, val kind: TokenType)
+data class Token(val text: String, val type: TokenType)
